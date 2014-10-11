@@ -1,0 +1,272 @@
+\input texinfo.tex
+@c %**start of header
+@setfilename mmux-unsafe-users-management.info
+@settitle MMUX Unsafe Users Management
+@c %**end of header
+
+@include version.texi
+@include macros.texi
+
+@c page
+@c ------------------------------------------------------------
+@c Values.
+@c ------------------------------------------------------------
+
+@set TITLE                      MMUX Unsafe Users Management
+
+@c To be used as @value{PACKAGE} whenever we need to include the full
+@c name of this package.
+@set PACKAGE                    MMUX Unsafe Users Management
+
+@c To be used as @value{PACKAGE} whenever we need to include the
+@c nickname of the project: the name that is used to compose the
+@c distribution tarball or the web address.
+@set PACKAGE_NICKNAME           mmux-unsafe-users-management
+
+@c To be used as @value{AUTHOR} whenever we need to include the list of
+@c authors of this document.
+@set AUTHOR                     Marco Maggi
+
+@c To be used as @value{AUTHOR_EMAIL} whenever we need to include the
+@c email of the *single* author of this document.
+@set AUTHOR_EMAIL               @email{marco.maggi.ipsu@@poste.it}
+
+@c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
+@c list of copyright years.
+@set COPYRIGHT_YEARS            2014
+
+@c ------------------------------------------------------------
+
+@set GITHUB_URL                 @url{http://github.com/marcomaggi/mmux-unsafe-users-management}
+@set DOCUMENTATION_URL          @url{http://marcomaggi.github.com/docs/mmux-unsafe-users-management.html}
+
+@c page
+@c ------------------------------------------------------------
+@c Copyright notice.
+@c ------------------------------------------------------------
+
+@copying
+This document describes version @version{} of @value{PACKAGE}, a
+distribution of @gnu{} Bash scripts; it provides utilities to handle
+unsafe user accounts.  The package is distributed under the terms of the
+@gnu{} General Public License (@gpl{}).
+
+@noindent
+Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the @gnu{} Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with
+Invariant Sections being ``@gnu{} Free Documentation License'' and
+``@gnu{} General Public License'', no Front--Cover Texts, and no
+Back--Cover Texts.  A copy of the license is included in the section
+entitled ``@gnu{} Free Documentation License''.
+@end quotation
+@end copying
+
+@c page
+@c ------------------------------------------------------------
+@c Headers.
+@c ------------------------------------------------------------
+
+@titlepage
+@title @value{TITLE}
+@subtitle Revision @version{}
+@author @value{AUTHOR} @value{AUTHOR_EMAIL}
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@c ------------------------------------------------------------
+
+@ifinfo
+@dircategory Development
+@direntry
+* mmux-unsafe-users-management: (mmux-unsafe-users-management). @value{TITLE}.
+@end direntry
+@end ifinfo
+
+@c ------------------------------------------------------------
+
+@ignore
+@syncodeindex tp cp
+@syncodeindex vr cp
+@syncodeindex fn cp
+@end ignore
+
+@c page
+@ifnottex
+@node Top
+@top @value{TITLE}
+
+@insertcopying
+
+@menu
+* overview::                    Overview of the package.
+* model::                       How unsafe users are associated to safe ones.
+* unsafe-users::                Command line utility.
+
+Appendices
+
+* Package License::             GNU General Public License.
+* Documentation License::       GNU Free Documentation License.
+* references::                  Bibliography and references.
+
+Indexes
+
+* concept index::               An entry for each concept.
+* function index::              An entry for each function.
+* variable index::              An entry for each variable.
+* type index::                  An entry for each type.
+@end menu
+@end ifnottex
+
+@c page
+@node overview
+@chapter Overview of the package
+
+
+This document describes version @version{} of @value{PACKAGE}, a
+distribution of @gnu{} Bash scripts; it proposes a model to manage
+unsafe user profiles associated to safe users account on Slackware
+GNU+Linux systems.  It depends upon the Marco's Bash Functions Library
+(@acronym{MBFL}).  To use this package, the following system
+requirements must be satisfied:
+
+@itemize
+@item
+This package relies on the program @command{sudo} to allow file system
+mounting and unmounting to the users of the group @samp{users}; such
+policy is configured by the file:
+
+@center @file{/etc/sudoers.d/mmux-unsafe-users-management.conf}
+
+@noindent
+which is installed on the system by this package: do not blindly accept
+this configuration file!  Take a good look at it and make the necessary
+changes for your host.
+
+Remember that such sudoers file must be installed on the system with
+octal access permissions @samp{0400}; the installation directory
+@file{/etc/sudoers.d} must also have octal access permissions
+@samp{0700}.  Such permissions @strong{cannot} be enforced by the
+installation infrastructure of this package.
+
+To enable loading of sudoers configuration modules: we have to include
+the following line in the file @file{/etc/sudoers}:
+
+@example
+#includedir /etc/sudoers.d
+@end example
+@end itemize
+
+With this system configuration, users that are members of the group
+@code{users} can: add and remove multiple unsafe users accounts
+associated to a safe user; mount an unsafe user's home directory under a
+directory of the associated safe user; enable unsafe users to use a X
+Window server running under the safe user's permissions.
+
+@c page
+@node model
+@chapter How unsafe users are associated to safe ones
+
+
+To be written.
+
+@c page
+@node unsafe-users
+@chapter Command line utility
+
+
+Unsafe users are managed with the @command{unsafe-users} command line
+utility.  The list of unsafe users associated to a safe user is in the
+file @file{~/.unsafe-users}, one unsafe user name for each line.
+Synopsis:
+
+@example
+unsafe-users [action] [options]
+@end example
+
+Action commands:
+
+@table @code
+@item add UNSAFE-USERNAME --safe-user=SAFE-USERNAME [options]
+Add an unsafe user associated to the selected safe user.
+
+@item del UNSAFE-USERNAME --safe-user=SAFE-USERNAME [options]
+Delete an unsafe user associated to the selected safe user.
+
+@item bind [options] [arguments]
+Mount unsafe users home directories under a safe user safe one.
+
+@item unbind [options] [arguments]
+Mount unsafe users home directories under a safe user safe one.
+
+@item enable-x [options] [arguments]
+Enable unsafe users running X applications in a safe user X server.
+
+@item disable-x [options] [arguments]
+Enable unsafe users running X applications in a safe user X server.
+
+@item help [options] [arguments]
+Print help screen and exit.
+@end table
+
+Options:
+
+@table @code
+@item -S@var{SAFE-USERNAME}
+@item --safe-user=@var{SAFE-USERNAME}
+Select the safe user associated to the unsafe user.
+@end table
+
+@c page
+@c ------------------------------------------------------------
+@c Appendices.
+@c ------------------------------------------------------------
+
+@include gpl-3.0.texi
+@include fdl-1.3.texi
+
+@c page
+@node references
+@appendix Bibliography and references
+
+
+The documentation of @value{PACKAGE} is available online:
+
+@center @value{DOCUMENTATION_URL}
+
+@noindent
+the latest version of this package can be downloaded from:
+
+@center @value{GITHUB_URL}
+
+@c page
+@node concept index
+@appendix An entry for each concept
+
+@printindex cp
+
+@node function index
+@appendix An entry for each function.
+
+@printindex fn
+
+@node variable index
+@appendix An entry for each variable.
+
+@printindex vr
+
+@node type index
+@appendix An entry for each type.
+
+@printindex tp
+
+@contents
+@bye
+
+@c end of file
+
