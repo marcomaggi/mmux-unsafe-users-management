@@ -173,20 +173,161 @@ Window server running under the safe user's permissions.
 @chapter How unsafe users are associated to safe ones
 
 
-To be written.
+@menu
+* model using::                 How to use the package.
+* model creation::              How to add an unsafe user account.
+@end menu
+
+@c page
+@node model using
+@section How to use the package
+
+
+The package @value{PACKAGE} installs the following scripts with access
+permissions @code{0755}:
+
+@example
+/etc/mmux/bash_login.d/mmux-unsafe-users-management.sh
+/etc/mmux/bash_logout.d/mmux-unsafe-users-management.sh
+/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
+@end example
+
+Every user that intends to use the facilities should add appropriate
+shell commands in its home directory files:
+
+@table @file
+@item ~/.bash_login
+Should contain:
+
+@example
+for mmux_login_script in /etc/mmux/bash_login.d/*.sh
+do
+  if test -x "$mmux_login_script"
+  then source "$mmux_login_script"
+  fi
+done
+unset mmux_login_script
+@end example
+
+@item ~/.bash_logout
+Should contain:
+
+@example
+for mmux_logout_script in /etc/mmux/bash_logout.d/*.sh
+do
+  if test -x "$mmux_logout_script"
+  then source "$mmux_logout_script"
+  fi
+done
+unset mmux_logout_script
+@end example
+
+@item ~/.xinitrc
+Should contain:
+
+@example
+for mmux_xinitrc_script in /etc/mmux/xinitrc.d/*.sh
+do
+  if test -x "$mmux_xinitrc_script"
+  then source "$mmux_xinitrc_script"
+  fi
+done
+unset mmux_xinitrc_script
+@end example
+@end table
+
+Let's say the user @samp{marco}, which is part of the group
+@code{users}, wants to create the unsafe users accounts
+@samp{marco-firefox} and @samp{marco-minecraft}; he has to issue the
+commands:
+
+@example
+$ /usr/sbin/mmux-unsafe-users add marco-firefox -Smarco
+$ /usr/sbin/mmux-unsafe-users add marco-minecraft -Smarco
+@end example
+
+@noindent
+then create a file @file{~/.mmux-safe-users} holding the lines:
+
+@example
+marco-firefox
+marco-minecraft
+@end example
+
+@noindent
+finally log out and log back in.  Now he should be able to check the
+unsafe users directories:
+
+@smallexample
+$ ls -l ~/var/unsafe-users/
+drwxrws---  20 marco-firefox  marco-fi 4096 2014-10-11 10:22 marco-firefox
+drwxrws---   6 marco-minecraf marco-mi 4096 2014-10-11 15:33 marco-minecraft
+@end smallexample
+
+@noindent
+and mounts:
+
+@smallexample
+$ mount | grep unsafe-users
+/home/unsafe-users/marco-firefox on /home/marco/var/unsafe-users/marco-firefox type none (rw,bind)
+/home/unsafe-users/marco-minecraft on /home/marco/var/unsafe-users/marco-minecraft type none (rw,bind)
+@end smallexample
+
+@noindent
+and the groups:
+
+@example
+$ groups
+marco lp wheel floppy audio video cdrom tape plugdev scanner users marco-firefox marco-minecraft
+@end example
+
+If @samp{marco} wants to remove an unsafe user account,
+@strong{including the unsafe user's home directory}, he can do:
+
+@example
+$ /usr/sbin/mmux-unsafe-users del marco-minecraft -Smarco
+@end example
+
+@noindent
+and delete the corresponding entry from @file{~/.mmux-unsafe-users}.
+
+To run programs under an unsafe user account, @code{marco} can do:
+
+@example
+$ sudo -u marco-firefox -H /opt/firefox/32.0.3/firefox
+@end example
+
+@noindent
+or event better prepare a shell script holding something like:
+
+@example
+(set -x
+  cd ~marco-firefox
+  umask 0007
+  sudo -u marco-firefox -H \
+    /opt/firefox/32.0.3/firefox "$@@" \
+    &>~marco-firefox/.FIREFOX-errors &)
+@end example
+
+@c page
+@node model creation
+@section How to add an unsafe user account
+
+
+
 
 @c page
 @node unsafe-users
 @chapter Command line utility
 
 
-Unsafe users are managed with the @command{unsafe-users} command line
-utility.  The list of unsafe users associated to a safe user is in the
-file @file{~/.unsafe-users}, one unsafe user name for each line.
-Synopsis:
+Unsafe users are managed with the @command{mmux-unsafe-users} command
+line utility.  The list of unsafe users associated to a safe user is in
+the file @file{~/.mmux-unsafe-users}, one unsafe user name for each
+line.  Synopsis:
 
 @example
-unsafe-users [action] [options]
+mmux-unsafe-users [action] [options]
 @end example
 
 Action commands:

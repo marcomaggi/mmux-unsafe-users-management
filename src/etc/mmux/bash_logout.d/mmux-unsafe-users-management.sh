@@ -4,7 +4,7 @@
 # Logout script.  Sets up support for unsafe user accounts managed
 # by the package MMUX Unsafe Users Management.
 
-SCRIPT=/usr/bin/mmux-unsafe-users
+SCRIPT=/usr/sbin/mmux-unsafe-users
 
 if test -x "$SCRIPT"
 then "$SCRIPT" unbind --verbose

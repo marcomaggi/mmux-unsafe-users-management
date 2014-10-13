@@ -362,7 +362,7 @@ function script_action_BIND () {
 	mbfl_message_verbose_printf 'binding home directories of unsafe users associated to: %s\n' "$SAFE_USERNAME"
 
 	local UNSAFE_MOUNT_POINT_PARENT="/home/$SAFE_USERNAME/var/unsafe-users"
-	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.unsafe-users"
+	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.mmux-unsafe-users"
 	if ! mbfl_file_is_file "$UNSAFE_USERS_LIST_FILE"
 	then
 	    mbfl_message_error_printf 'missing list of unsafe users file: %s\n' "$UNSAFE_USERS_LIST_FILE"
@@ -425,7 +425,7 @@ function script_action_SUDO_BIND () {
 	fi
 
 	local UNSAFE_MOUNT_POINT_PARENT="/home/$SAFE_USERNAME/var/unsafe-users"
-	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.unsafe-users"
+	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.mmux-unsafe-users"
 	local UNSAFE_HOME="$UNSAFE_HOME_PARENT/$UNSAFE_USERNAME"
 	local UNSAFE_MOUNT_POINT="$UNSAFE_MOUNT_POINT_PARENT/$UNSAFE_USERNAME"
 	if ! unsafe_home_is_mounted_p "$UNSAFE_HOME" "$UNSAFE_MOUNT_POINT"
@@ -468,7 +468,7 @@ function script_action_UNBIND () {
 	mbfl_message_verbose_printf 'unbinding home directories of unsafe users associated to: %s\n' "$SAFE_USERNAME"
 
 	local UNSAFE_MOUNT_POINT_PARENT="/home/$SAFE_USERNAME/var/unsafe-users"
-	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.unsafe-users"
+	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.mmux-unsafe-users"
 	if ! mbfl_file_is_file "$UNSAFE_USERS_LIST_FILE"
 	then
 	    mbfl_message_error_printf 'missing list of unsafe users file: %s\n' "$UNSAFE_USERS_LIST_FILE"
@@ -520,7 +520,7 @@ function script_action_SUDO_UNBIND () {
 	fi
 
 	local UNSAFE_MOUNT_POINT_PARENT="/home/$SAFE_USERNAME/var/unsafe-users"
-	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.unsafe-users"
+	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.mmux-unsafe-users"
 	local UNSAFE_HOME="$UNSAFE_HOME_PARENT/$UNSAFE_USERNAME"
 	local UNSAFE_MOUNT_POINT="$UNSAFE_MOUNT_POINT_PARENT/$UNSAFE_USERNAME"
 	if unsafe_home_is_mounted_p "$UNSAFE_HOME" "$UNSAFE_MOUNT_POINT"
@@ -569,7 +569,7 @@ function script_action_ENABLE_X () {
 	    exit_because_failure
 	fi
 
-	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.unsafe-users"
+	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.mmux-unsafe-users"
 	if ! mbfl_file_is_file "$UNSAFE_USERS_LIST_FILE"
 	then
 	    mbfl_message_error_printf 'missing list of unsafe users file: %s\n' "$UNSAFE_USERS_LIST_FILE"
@@ -620,7 +620,7 @@ function script_action_DISABLE_X () {
 
     if mbfl_wrong_num_args 0 $ARGC
     then
-	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.unsafe-users"
+	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.mmux-unsafe-users"
 	if ! mbfl_file_is_file "$UNSAFE_USERS_LIST_FILE"
 	then
 	    mbfl_message_error_printf 'missing list of unsafe users file: %s\n' "$UNSAFE_USERS_LIST_FILE"

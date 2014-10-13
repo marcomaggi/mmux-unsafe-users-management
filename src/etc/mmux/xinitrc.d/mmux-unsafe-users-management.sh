@@ -1,10 +1,10 @@
 #!/bin/sh
-# /etc/mmux/X11/mmux-unsafe-users-management.sh --
+# /etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh --
 #
 # Allow selected unsafe users to run processes under X11.
 
 
-SCRIPT=/usr/bin/mmux-unsafe-users
+SCRIPT=/usr/sbin/mmux-unsafe-users
 
 if test -x "$SCRIPT"
 then "$SCRIPT" enable-x --verbose

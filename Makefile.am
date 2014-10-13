@@ -32,20 +32,20 @@ dist_mmuxbashlogin_SCRIPTS	= src/etc/mmux/bash_login.d/mmux-unsafe-users-managem
 mmuxbashlogoutdir		= $(sysconfdir)/mmux/bash_logout.d
 dist_mmuxbashlogout_SCRIPTS	= src/etc/mmux/bash_logout.d/mmux-unsafe-users-management.sh
 
-mmuxX11dir			= $(sysconfdir)/mmux/X11
-dist_mmuxX11_SCRIPTS		= src/etc/mmux/X11/mmux-unsafe-users-management.sh
+mmuxX11dir			= $(sysconfdir)/mmux/xinitrc.d
+dist_mmuxX11_SCRIPTS		= src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
 
 ## --------------------------------------------------------------------
 ## scripts
 
-EXTRA_DIST		+= src/bin/mmux-unsafe-users.m4
+EXTRA_DIST		+= src/sbin/mmux-unsafe-users.m4
 
-dist_bin_SCRIPTS	= src/bin/mmux-unsafe-users
+dist_sbin_SCRIPTS	= src/sbin/mmux-unsafe-users
 
 MBFLPP_FLAGS		= --preserve-comments
 
-src/bin/mmux-unsafe-users : src/bin/mmux-unsafe-users.m4
-	test -d src/bin || $(MKDIR_P) src/bin
+src/sbin/mmux-unsafe-users : src/sbin/mmux-unsafe-users.m4
+	test -d src/sbin || $(MKDIR_P) src/sbin
 	$(MBFLPP) $(MBFLPP_FLAGS) <$< >$@
 
 CLEANFILES		= src/bin/mmux-unsafe-users
