@@ -401,6 +401,9 @@ and managed by the command line utility @command{mmux-unsafe-users}.
 
 @menu
 * model creation::              How to add an unsafe user account.
+* model deletion::              How to delete an unsafe user account.
+* model bindings::              How unsafe users home directories are
+                                bound.
 @end menu
 
 @c page
@@ -443,6 +446,72 @@ $SUDO /bin/chmod 2770 \
    /home/unsafe-users/marco-firefox
 @end example
 
+@noindent
+the directory is setgid, so all the files created in it are
+automatically set to the group of the unsafe user.
+
+The safe user is added to the group of the unsafe user:
+
+@example
+$SUDO /usr/sbin/usermod marco \
+   --append --groups marco-firefox
+@end example
+
+@noindent
+this way the safe user can access the files in the home directory of the
+unsafe user.@footnote{We have to remember that this group addition will
+become effecting after the safe user has logged out and logged back in.}
+
+@c page
+@node model deletion
+@section How to delete an unsafe user account
+
+
+Let's take as example the unsafe user @samp{marco-firefox} associated to
+the safe user @samp{marco}.  The unsafe user account and it home
+directory are removed with:
+
+@example
+$SUDO /usr/sbin/userdel marco-firefox --remove
+@end example
+
+The unsafe user group is removed with:
+
+@example
+$SUDO /usr/sbin/groupdel marco-firefox
+@end example
+
+@c page
+@node model bindings
+@section How unsafe users home directories are bound
+
+
+The unsafe user's home directory is mounted under a subdirectory of the
+safe user's home directory.
+
+Let's take as example the unsafe user @samp{marco-firefox} associated to
+the safe user @samp{marco}.  When it does not already exist, the mount
+point is created with:
+
+@example
+/usr/bin/install -m 0700 -d ~/var/unsafe-users/marco-firefox
+@end example
+
+The unsafe user's home directory is mounted with:
+
+@example
+$SUDO /bin/mount --bind \
+   /home/unsafe-users/marco-firefox \
+   /home/marco/var/unsafe-users/marco-firefox
+@end example
+
+@noindent
+and unmounted with:
+
+@example
+$SUDO /bin/umount \
+   /home/marco/var/unsafe-users/marco-firefox
+@end example
 
 @c page
 @c ------------------------------------------------------------
