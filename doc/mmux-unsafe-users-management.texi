@@ -404,6 +404,8 @@ and managed by the command line utility @command{mmux-unsafe-users}.
 * model deletion::              How to delete an unsafe user account.
 * model bindings::              How unsafe users home directories are
                                 bound.
+* model xhost::                 Enabling and disabling running X
+                                applications.
 @end menu
 
 @c page
@@ -486,8 +488,17 @@ $SUDO /usr/sbin/groupdel marco-firefox
 @section How unsafe users home directories are bound
 
 
-The unsafe user's home directory is mounted under a subdirectory of the
-safe user's home directory.
+Even though it is always possible to reference an unsafe user's home
+directory with the tilde syntax:
+
+@example
+~marco-firefox
+@end example
+
+@noindent
+which is a nice and short syntax, with this package the unsafe user's
+home directory is mounted under a subdirectory of the safe user's home
+directory.
 
 Let's take as example the unsafe user @samp{marco-firefox} associated to
 the safe user @samp{marco}.  When it does not already exist, the mount
@@ -512,6 +523,38 @@ and unmounted with:
 $SUDO /bin/umount \
    /home/marco/var/unsafe-users/marco-firefox
 @end example
+
+The binding operation is performed for each unsafe user name listed in
+the file @file{~/.mmux-unsafe-users}.
+
+@c page
+@node model xhost
+@section Enabling and disabling running X applications
+
+
+X Window host access control is enabled with:
+
+@example
+/usr/bin/xhost -
+@end example
+
+Let's take as example the unsafe user @samp{marco-firefox} associated to
+the safe user @samp{marco}.  The unsafe user is allowed to run X
+applications under a server owned by the safe user with:
+
+@example
+/usr/bin/xhost +local:marco-firefox
+@end example
+
+@noindent
+and disallowed with:
+
+@example
+/usr/bin/xhost -local:marco-firefox
+@end example
+
+The allow operation is performed for each unsafe user name listed in the
+file @file{~/.mmux-unsafe-users}.
 
 @c page
 @c ------------------------------------------------------------
