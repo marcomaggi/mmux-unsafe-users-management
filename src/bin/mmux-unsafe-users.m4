@@ -30,7 +30,7 @@
 #page
 #### global variables
 
-declare -r script_PROGNAME=unsafe-users
+declare -r script_PROGNAME=mmux-unsafe-users
 declare -r script_VERSION=0.1d0
 declare -r script_COPYRIGHT_YEARS='2014'
 declare -r script_AUTHOR='Marco Maggi'
