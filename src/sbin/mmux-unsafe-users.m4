@@ -73,13 +73,15 @@ fi
 #page
 #### program declarations
 
+mbfl_dialog_enable_programs
+
 mbfl_program_enable_sudo
 mbfl_file_enable_remove
 
 mbfl_declare_program /bin/mount
 mbfl_declare_program /bin/umount
 mbfl_declare_program /bin/grep
-mbfl_declare_program /usr/bin/chmod
+mbfl_declare_program /bin/chmod
 mbfl_declare_program /usr/bin/install
 mbfl_declare_program /usr/bin/xhost
 
@@ -162,6 +164,7 @@ function script_before_parsing_options_SUDO_UNBIND () {
 #### adding unsafe users
 
 function script_action_ADD () {
+    local FLAGS
     if mbfl_wrong_num_args 1 $ARGC
     then
 	local SAFE_USERNAME=$script_option_SAFE_USERNAME
@@ -183,8 +186,15 @@ function script_action_ADD () {
 	    exit_because_failure
 	fi
 
+	if mbfl_option_verbose
+	then FLAGS="$FLAGS --verbose"
+	fi
+	if mbfl_option_interactive
+	then FLAGS="$FLAGS --interactive"
+	fi
+
 	mbfl_program_declare_sudo_user root
-	if mbfl_program_exec "$SCRIPT_ARGV0" sudo-add "$SAFE_USERNAME" "$UNSAFE_USERNAME"
+	if mbfl_program_exec "$SCRIPT_ARGV0" sudo-add "$SAFE_USERNAME" "$UNSAFE_USERNAME" $FLAGS
 	then exit_success
 	else
     	    mbfl_message_error 'adding user'
@@ -196,10 +206,11 @@ function script_action_ADD () {
     fi
 }
 function script_action_SUDO_ADD () {
+    local INSTALL USERADD USERMOD CHMOD CHMOD_FLAGS
     INSTALL=$(mbfl_program_found /usr/bin/install)  || exit_because_program_not_found
     USERADD=$(mbfl_program_found /usr/sbin/useradd) || exit_because_program_not_found
     USERMOD=$(mbfl_program_found /usr/sbin/usermod) || exit_because_program_not_found
-    CHMOD=$(mbfl_program_found /usr/bin/chmod)      || exit_because_program_not_found
+    CHMOD=$(mbfl_program_found /bin/chmod)          || exit_because_program_not_found
     if mbfl_wrong_num_args 2 $ARGC
     then
 	local SAFE_USERNAME=${ARGV[0]}
@@ -220,6 +231,7 @@ function script_action_SUDO_ADD () {
 	# Make user the unsafe home directories parent exists.
 	if ! mbfl_file_is_directory "$UNSAFE_HOME_PARENT"
 	then
+	    mbfl_message_verbose_printf 'creating top directory for unsafe users home: %s\n' "$UNSAFE_HOME_PARENT"
 	    if mbfl_program_exec "$INSTALL" -m 0755 -o root -g root "$UNSAFE_HOME_PARENT"
 	    then
 		mbfl_message_error_printf 'creating unsafe home directories parent: %s' "$UNSAFE_HOME_PARENT"
@@ -232,6 +244,7 @@ function script_action_SUDO_ADD () {
 	# We assume  there exists a  group with the same  name of
 	# the safe user.  We create a group with the same name of
 	# the unsafe user.
+	mbfl_message_verbose_printf 'creating unsafe user: %s\n' "$UNSAFE_USERNAME"
 	if ! mbfl_program_exec "$USERADD" \
 	    --base-dir		"$UNSAFE_HOME_PARENT"		\
 	    --home		"$UNSAFE_HOME"			\
@@ -247,7 +260,11 @@ function script_action_SUDO_ADD () {
 	fi
 
 	# Set permissions for the unsafe user's home directory.
-	if ! mbfl_program_exec "$CHMOD" 2770 "$UNSAFE_HOME" --verbose
+	CHMOD_FLAGS=--recursive
+	if mbfl_option_verbose
+	then CHMOD_FLAGS="${CHMOD_FLAGS} --verbose"
+	fi
+	if ! mbfl_program_exec "$CHMOD" 2770 "$UNSAFE_HOME" $CHMOD_FLAGS
 	then mbfl_message_error 'setting permissions to unsafe user home'
 	fi
 
@@ -267,6 +284,7 @@ function script_action_SUDO_ADD () {
 #### deleting unsafe users
 
 function script_action_DEL () {
+    local FLAGS
     if mbfl_wrong_num_args 1 $ARGC
     then
 	local SAFE_USERNAME=$script_option_SAFE_USERNAME
@@ -288,8 +306,15 @@ function script_action_DEL () {
 	    exit_because_failure
 	fi
 
+	if mbfl_option_verbose
+	then FLAGS="$FLAGS --verbose"
+	fi
+	if mbfl_option_interactive
+	then FLAGS="$FLAGS --interactive"
+	fi
+
 	mbfl_program_declare_sudo_user root
-	if mbfl_program_exec "$SCRIPT_ARGV0" sudo-del "$SAFE_USERNAME" "$UNSAFE_USERNAME"
+	if mbfl_program_exec "$SCRIPT_ARGV0" sudo-del "$SAFE_USERNAME" "$UNSAFE_USERNAME" $FLAGS
 	then exit_success
 	else
     	    mbfl_message_error 'deleting user'
@@ -320,6 +345,17 @@ function script_action_SUDO_DEL () {
 	    exit_because_failure
 	fi
 
+	if mbfl_option_interactive
+	then
+	    local MESSAGE=$(printf 'delete the user "%s"' "$UNSAFE_USERNAME")
+	    if ! mbfl_dialog_yes_or_no "$MESSAGE"
+	    then
+		mbfl_message_verbose_printf 'skipping deletion of user: %s\n' "$UNSAFE_USERNAME"
+		exit_success
+	    fi
+	fi
+
+	mbfl_message_verbose_printf 'deleting user: %s\n' "$UNSAFE_USERNAME"
 	if ! mbfl_program_exec "$USERDEL" "$UNSAFE_USERNAME" --remove
 	then mbfl_message_error_printf 'removing unsafe user: %s' "$UNSAFE_USERNAME"
 	fi
@@ -327,6 +363,7 @@ function script_action_SUDO_DEL () {
 	# When  "groupdel"  removes  the unsafe  group:  it  also
 	# removes it  from the list  of groups of which  the safe
 	# user is part.
+	mbfl_message_verbose_printf 'deleting group: %s\n' "$UNSAFE_USERNAME"
 	if ! mbfl_program_exec "$GROUPDEL" "$UNSAFE_USERNAME"
 	then mbfl_message_error_printf 'removing unsafe group: %s' "$UNSAFE_USERNAME"
 	fi
@@ -340,6 +377,7 @@ function script_action_SUDO_DEL () {
 #### binding unsafe users home to safe user directory
 
 function script_action_BIND () {
+    local FLAGS
     if mbfl_wrong_num_args 0 $ARGC
     then
 	local SAFE_USERNAME=$script_option_SAFE_USERNAME
@@ -369,6 +407,13 @@ function script_action_BIND () {
 	    exit_because_failure
 	fi
 
+	if mbfl_option_verbose
+	then FLAGS="$FLAGS --verbose"
+	fi
+	if mbfl_option_interactive
+	then FLAGS="$FLAGS --interactive"
+	fi
+
 	while read UNSAFE_USERNAME
 	do
 	    if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
@@ -395,7 +440,7 @@ function script_action_BIND () {
 	    then mbfl_message_verbose_printf 'unsafe user home directory already bound to: %s\n' "$UNSAFE_MOUNT_POINT"
 	    else
 		mbfl_program_declare_sudo_user root
-		if ! mbfl_program_exec "$SCRIPT_ARGV0" sudo-bind "$SAFE_USERNAME" "$UNSAFE_USERNAME"
+		if ! mbfl_program_exec "$SCRIPT_ARGV0" sudo-bind "$SAFE_USERNAME" "$UNSAFE_USERNAME" $FLAGS
 		then mbfl_message_error_printf 'binding unsafe user home to safe user directory, unsafe user: %s' "$UNSAFE_USERNAME"
 		fi
 	    fi
@@ -446,6 +491,7 @@ function script_action_SUDO_BIND () {
 #### unbinding unsafe users home to safe user directory
 
 function script_action_UNBIND () {
+    local FLAGS
     if mbfl_wrong_num_args 0 $ARGC
     then
 	local SAFE_USERNAME=$script_option_SAFE_USERNAME
@@ -475,6 +521,13 @@ function script_action_UNBIND () {
 	    exit_because_failure
 	fi
 
+	if mbfl_option_verbose
+	then FLAGS="$FLAGS --verbose"
+	fi
+	if mbfl_option_interactive
+	then FLAGS="$FLAGS --interactive"
+	fi
+
 	while read UNSAFE_USERNAME
 	do
 	    if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
@@ -490,7 +543,7 @@ function script_action_UNBIND () {
 	    if unsafe_home_is_mounted_p "$UNSAFE_HOME" "$UNSAFE_MOUNT_POINT"
 	    then
 		mbfl_program_declare_sudo_user root
-		if ! mbfl_program_exec "$SCRIPT_ARGV0" sudo-unbind "$SAFE_USERNAME" "$UNSAFE_USERNAME"
+		if ! mbfl_program_exec "$SCRIPT_ARGV0" sudo-unbind "$SAFE_USERNAME" "$UNSAFE_USERNAME" $FLAGS
 		then mbfl_message_error_printf 'unbinding unsafe user home to safe user directory, unsafe user: %s' "$UNSAFE_USERNAME"
 		fi
 	    else mbfl_message_verbose_printf 'unsafe user home directory already unbound from: %s\n' "$UNSAFE_MOUNT_POINT"

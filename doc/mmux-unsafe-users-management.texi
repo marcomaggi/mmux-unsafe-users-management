@@ -129,16 +129,22 @@ Indexes
 
 This document describes version @version{} of @value{PACKAGE}, a
 distribution of @gnu{} Bash scripts; it proposes a model to manage
-unsafe user profiles associated to safe users account on Slackware
+unsafe user profiles associated to safe user accounts on Slackware
 GNU+Linux systems.  It depends upon the Marco's Bash Functions Library
 (@acronym{MBFL}).  To use this package, the following system
 requirements must be satisfied:
 
 @itemize
 @item
-This package relies on the program @command{sudo} to allow file system
-mounting and unmounting to the users of the group @samp{users}; such
-policy is configured by the file:
+This package is meant to be used on computers for personal use, on which
+only trusted users have accounts.  It introduces a security layer to run
+applications under restricted privileges, with the purpose of partially
+protect legitimate users from remote attacks.
+
+@item
+This package relies on the program @command{sudo} to allow file users
+creation and system mounting and unmounting to the users of the group
+@samp{users}; such policy is configured by the file:
 
 @center @file{/etc/sudoers.d/mmux-unsafe-users-management.conf}
 
@@ -390,7 +396,7 @@ Select the safe user associated to the unsafe user.
 @chapter How unsafe users are associated to safe ones
 
 
-This chapter examines how the unsafe user account are created, deleted
+This chapter examines how the unsafe user accounts are created, deleted
 and managed by the command line utility @command{mmux-unsafe-users}.
 
 @menu
@@ -401,6 +407,41 @@ and managed by the command line utility @command{mmux-unsafe-users}.
 @node model creation
 @section How to add an unsafe user account
 
+
+The root directory of the unsafe user's home directory is created with:
+
+@example
+$SUDO /usr/bin/install -m 0755 -o root -g root \
+   /home/unsafe-users
+@end example
+
+Let's take as example the unsafe user @samp{marco-firefox} associated to
+the safe user @samp{marco}.  Unsafe users accounts are created with the
+command:
+
+@example
+$SUDO /usr/sbin/useradd \
+   --base-dir     /home/unsafe-users                    \
+   --home         /home/unsafe-users/marco-firefox      \
+   --create-home                                        \
+   --user-group                                         \
+   --groups       audio,video                           \
+   --shell        /bin/false                            \
+   marco-firefox
+@end example
+
+@noindent
+notice that an unsafe user's account @strong{must not} be part of the
+group @code{users}; rather it should be part of the smallest possible
+number of groups needed to run the desired applications.
+
+The access permissions of the unsafe user's home directory are modified
+as follows:
+
+@example
+$SUDO /bin/chmod 2770 \
+   /home/unsafe-users/marco-firefox
+@end example
 
 
 @c page

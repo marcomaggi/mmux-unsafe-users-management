@@ -22,6 +22,11 @@ This package proposes a model  to manage unsafe user profiles associated
 to safe users  account on Slackware GNU+Linux systems.   It depends upon
 the Marco's Bash Functions Library (MBFL).
 
+  This package  is meant to  be used on  computers for personal  use, on
+which only trusted users have  accounts.  It introduces a security layer
+to run  applications under  restricted privileges,  with the  purpose of
+partially protect legitimate users from remote attacks.
+
   This package makes use of the GNU Autotools.
 
 
