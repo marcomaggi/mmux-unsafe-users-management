@@ -105,8 +105,10 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* using::                       How to use the package.
+* tips::                        Useful stuff to know.
+* script::                      The command line utility that does it all.
 * model::                       How unsafe users are associated to safe ones.
-* unsafe-users::                Command line utility.
 
 Appendices
 
@@ -117,9 +119,6 @@ Appendices
 Indexes
 
 * concept index::               An entry for each concept.
-* function index::              An entry for each function.
-* variable index::              An entry for each variable.
-* type index::                  An entry for each type.
 @end menu
 @end ifnottex
 
@@ -169,18 +168,8 @@ directory of the associated safe user; enable unsafe users to use a X
 Window server running under the safe user's permissions.
 
 @c page
-@node model
-@chapter How unsafe users are associated to safe ones
-
-
-@menu
-* model using::                 How to use the package.
-* model creation::              How to add an unsafe user account.
-@end menu
-
-@c page
-@node model using
-@section How to use the package
+@node using
+@chapter How to use the package
 
 
 The package @value{PACKAGE} installs the following scripts with access
@@ -310,21 +299,54 @@ or event better prepare a shell script holding something like:
 @end example
 
 @c page
-@node model creation
-@section How to add an unsafe user account
+@node tips
+@chapter Useful stuff to know
 
 
+While setting up applications to run under the unsafe user, we should
+remember the following:
 
+@itemize
+@item
+Prepare fonts configuration with @code{fontconfig}.  We must install in
+the unsafe user's home directory a suitable @file{.fonts.conf} file and
+build the fonts cache, else applications will not be able to use the
+installed fonts.  For example the user @samp{marco} might do:
+
+@example
+$ cd ~marco
+$ cp .fonts.conf /home/unsafe-users/marco-firefox
+$ sudo -u marco-firefox /bin/bash
+$ cd ~
+$ fc-cache -f -v
+@end example
+
+@item
+About web browsing with Mozilla Firefox: notice that it is possible to
+setup full installation of Firefox for a normal user and then copy the
+whole @file{~/.mozilla} directory to the home directory of the unsafe
+user; just remember to change the ownership and access permissions:
+
+@example
+$ cp --recursive ~marco/.mozilla ~marco-firefox/
+$ sudo chown marco-firefox ~marco-firefox/.mozilla --recursive
+$ sudo chgrp marco-firefox ~marco-firefox/.mozilla --recursive
+$ sudo chmod g=u,o-rwx ~marco-firefox/.mozilla --recursive
+@end example
+@end itemize
 
 @c page
-@node unsafe-users
-@chapter Command line utility
+@node script
+@chapter The command line utility that does it all
 
 
 Unsafe users are managed with the @command{mmux-unsafe-users} command
-line utility.  The list of unsafe users associated to a safe user is in
+line utility; it should be installed under @file{/usr/sbin}.  Each user
+must prepare a list of unsafe users associated to a safe user account in
 the file @file{~/.mmux-unsafe-users}, one unsafe user name for each
-line.  Synopsis:
+line.
+
+Synopsis:
 
 @example
 mmux-unsafe-users [action] [options]
@@ -339,19 +361,19 @@ Add an unsafe user associated to the selected safe user.
 @item del UNSAFE-USERNAME --safe-user=SAFE-USERNAME [options]
 Delete an unsafe user associated to the selected safe user.
 
-@item bind [options] [arguments]
+@item bind [options]
 Mount unsafe users home directories under a safe user safe one.
 
-@item unbind [options] [arguments]
+@item unbind [options]
 Mount unsafe users home directories under a safe user safe one.
 
-@item enable-x [options] [arguments]
+@item enable-x [options]
 Enable unsafe users running X applications in a safe user X server.
 
-@item disable-x [options] [arguments]
+@item disable-x [options]
 Enable unsafe users running X applications in a safe user X server.
 
-@item help [options] [arguments]
+@item help [options]
 Print help screen and exit.
 @end table
 
@@ -362,6 +384,24 @@ Options:
 @item --safe-user=@var{SAFE-USERNAME}
 Select the safe user associated to the unsafe user.
 @end table
+
+@c page
+@node model
+@chapter How unsafe users are associated to safe ones
+
+
+This chapter examines how the unsafe user account are created, deleted
+and managed by the command line utility @command{mmux-unsafe-users}.
+
+@menu
+* model creation::              How to add an unsafe user account.
+@end menu
+
+@c page
+@node model creation
+@section How to add an unsafe user account
+
+
 
 @c page
 @c ------------------------------------------------------------
@@ -390,21 +430,6 @@ the latest version of this package can be downloaded from:
 @appendix An entry for each concept
 
 @printindex cp
-
-@node function index
-@appendix An entry for each function.
-
-@printindex fn
-
-@node variable index
-@appendix An entry for each variable.
-
-@printindex vr
-
-@node type index
-@appendix An entry for each type.
-
-@printindex tp
 
 @contents
 @bye
