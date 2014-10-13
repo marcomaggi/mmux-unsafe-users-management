@@ -186,12 +186,10 @@ function script_action_ADD () {
 	    exit_because_failure
 	fi
 
-	if mbfl_option_verbose
-	then FLAGS="$FLAGS --verbose"
-	fi
-	if mbfl_option_interactive
-	then FLAGS="$FLAGS --interactive"
-	fi
+	mbfl_option_verbose		&& FLAGS="$FLAGS --verbose"
+    	mbfl_option_interactive		&& FLAGS="$FLAGS --interactive"
+	mbfl_option_show_program	&& FLAGS="$FLAGS --show-program"
+	mbfl_option_test		&& FLAGS="$FLAGS --test"
 
 	mbfl_program_declare_sudo_user root
 	if mbfl_program_exec "$SCRIPT_ARGV0" sudo-add "$SAFE_USERNAME" "$UNSAFE_USERNAME" $FLAGS
@@ -306,12 +304,10 @@ function script_action_DEL () {
 	    exit_because_failure
 	fi
 
-	if mbfl_option_verbose
-	then FLAGS="$FLAGS --verbose"
-	fi
-	if mbfl_option_interactive
-	then FLAGS="$FLAGS --interactive"
-	fi
+	mbfl_option_verbose		&& FLAGS="$FLAGS --verbose"
+    	mbfl_option_interactive		&& FLAGS="$FLAGS --interactive"
+	mbfl_option_show_program	&& FLAGS="$FLAGS --show-program"
+	mbfl_option_test		&& FLAGS="$FLAGS --test"
 
 	mbfl_program_declare_sudo_user root
 	if mbfl_program_exec "$SCRIPT_ARGV0" sudo-del "$SAFE_USERNAME" "$UNSAFE_USERNAME" $FLAGS
@@ -407,12 +403,10 @@ function script_action_BIND () {
 	    exit_because_failure
 	fi
 
-	if mbfl_option_verbose
-	then FLAGS="$FLAGS --verbose"
-	fi
-	if mbfl_option_interactive
-	then FLAGS="$FLAGS --interactive"
-	fi
+	mbfl_option_verbose		&& FLAGS="$FLAGS --verbose"
+    	mbfl_option_interactive		&& FLAGS="$FLAGS --interactive"
+	mbfl_option_show_program	&& FLAGS="$FLAGS --show-program"
+	mbfl_option_test		&& FLAGS="$FLAGS --test"
 
 	while read UNSAFE_USERNAME
 	do
@@ -521,12 +515,10 @@ function script_action_UNBIND () {
 	    exit_because_failure
 	fi
 
-	if mbfl_option_verbose
-	then FLAGS="$FLAGS --verbose"
-	fi
-	if mbfl_option_interactive
-	then FLAGS="$FLAGS --interactive"
-	fi
+	mbfl_option_verbose		&& FLAGS="$FLAGS --verbose"
+    	mbfl_option_interactive		&& FLAGS="$FLAGS --interactive"
+	mbfl_option_show_program	&& FLAGS="$FLAGS --show-program"
+	mbfl_option_test		&& FLAGS="$FLAGS --test"
 
 	while read UNSAFE_USERNAME
 	do
