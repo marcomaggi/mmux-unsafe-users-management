@@ -400,6 +400,7 @@ This chapter examines how the unsafe user accounts are created, deleted
 and managed by the command line utility @command{mmux-unsafe-users}.
 
 @menu
+* model permissions::           Restricting usage of this package.
 * model creation::              How to add an unsafe user account.
 * model deletion::              How to delete an unsafe user account.
 * model bindings::              How unsafe users home directories are
@@ -407,6 +408,20 @@ and managed by the command line utility @command{mmux-unsafe-users}.
 * model xhost::                 Enabling and disabling running X
                                 applications.
 @end menu
+
+@c page
+@node model permissions
+@section Restricting usage of this package
+
+
+By default, the @file{sudoers.d} file requires users to belong to the
+group @code{mmuxunsafeusers} to be able to run the script; we must add
+to this group all the users that are meant to use this package.
+
+The distribution comes with a script @file{meta/slackware/doinst.sh}
+that can be run to create the group and adjust the access permissions of
+the installed files.  It is usable, in fact, as Slackware package
+installation script.
 
 @c page
 @node model creation
