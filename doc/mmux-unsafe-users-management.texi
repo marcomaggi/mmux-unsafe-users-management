@@ -142,9 +142,9 @@ applications under restricted privileges, with the purpose of partially
 protect legitimate users from remote attacks.
 
 @item
-This package relies on the program @command{sudo} to allow file users
+This package relies on the program @command{sudo} to allow users
 creation and system mounting and unmounting to the users of the group
-@samp{users}; such policy is configured by the file:
+@samp{mmuxunsafeusers}; such policy is configured by the file:
 
 @center @file{/etc/sudoers.d/mmux-unsafe-users-management.conf}
 
@@ -168,10 +168,11 @@ the following line in the file @file{/etc/sudoers}:
 @end itemize
 
 With this system configuration, users that are members of the group
-@code{users} can: add and remove multiple unsafe users accounts
-associated to a safe user; mount an unsafe user's home directory under a
-directory of the associated safe user; enable unsafe users to use a X
-Window server running under the safe user's permissions.
+@code{mmuxunsafeusers} can: add and remove multiple unsafe users
+accounts associated to a safe user; mount an unsafe user's home
+directory under a directory of the associated safe user; enable unsafe
+users to use a X Window server running under the safe user's
+permissions.
 
 @c page
 @node using
@@ -232,7 +233,7 @@ unset mmux_xinitrc_script
 @end table
 
 Let's say the user @samp{marco}, which is part of the group
-@code{users}, wants to create the unsafe users accounts
+@code{mmuxunsafeusers}, wants to create the unsafe users accounts
 @samp{marco-firefox} and @samp{marco-minecraft}; he has to issue the
 commands:
 
@@ -452,7 +453,7 @@ $SUDO /usr/sbin/useradd \
 
 @noindent
 notice that an unsafe user's account @strong{must not} be part of the
-group @code{users}; rather it should be part of the smallest possible
+normal users' groups; rather it should be part of the smallest possible
 number of groups needed to run the desired applications.
 
 The access permissions of the unsafe user's home directory are modified
