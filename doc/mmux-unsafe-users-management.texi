@@ -456,6 +456,11 @@ notice that an unsafe user's account @strong{must not} be part of the
 normal users' groups; rather it should be part of the smallest possible
 number of groups needed to run the desired applications.
 
+The shell could be either @file{/bin/false} or @file{/sbin/nologin}; we
+opt for the former because it is more descriptive of a user account
+never available for log in (@file{/sbin/nologin} is more for temporarily
+disabled accounts).
+
 The access permissions of the unsafe user's home directory are modified
 as follows:
 
