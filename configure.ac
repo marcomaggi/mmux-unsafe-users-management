@@ -2,7 +2,7 @@ dnl @configure_input@
 dnl
 
 AC_PREREQ([2.69])
-AC_INIT([MMUX Unsafe Users Management],[0.1.0],[marco.maggi-ipsu@poste.it],
+AC_INIT([MMUX Unsafe Users Management],[0.2d0],[marco.maggi-ipsu@poste.it],
    [mmux-unsafe-users-management],[http://github.com/marcomaggi/mmux-unsafe-users-management/])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_MACRO_DIR([meta/autotools])
