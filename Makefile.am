@@ -14,6 +14,8 @@ doc_mmux_unsafe_users_management_TEXINFOS	= \
 	doc/gpl-3.0.texi			\
 	doc/macros.texi
 
+dist_man1_MANS		= doc/mmux-unsafe-users.man
+
 ## --------------------------------------------------------------------
 
 sudoersdir		= $(sysconfdir)/sudoers.d

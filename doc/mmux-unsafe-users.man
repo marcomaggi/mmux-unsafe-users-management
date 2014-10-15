@@ -1,0 +1,65 @@
+.\" Copyright (C), 2014  Marco Maggi
+.\" You may distribute this file under the terms of the GNU Free
+.\" Documentation License.
+.TH mmux-unsafe-users 1 2014-10-15
+.SH NAME
+mmux-unsafe-users \- A Bash script for unsafe users management on Slackware systems.
+.SH SYNOPSIS
+.sp
+.nf
+\fBmmux-unsafe-users\fR \fIaction\fR \fI...\fR
+.fi
+.sp
+.SH DESCRIPTION
+.PP
+Perform operations needed to manage unsafe user accounts; these accounts
+are meant to run applications with limited privileges or security
+reasons.  Every unsafe user account is associated to a safe user account
+that controls it.
+.PP
+The script can: create and delete user accounts; mount unsafe users home
+directories under a directory in the associated safe user home; allow
+unsafe users to run applications under X servers running with the safe
+user privileges.
+
+.\" ------------------------------------------------------------
+
+.SH "SEE ALSO"
+.PP
+The official documentation is distributed in Texinfo format; see the
+file \fBmmux-unsafe-users-management\fR.
+.PP
+.RS 4
+\%$ info mmux-unsafe-users-management
+.RE
+.PP
+The latest version of this package can be downloaded from:
+.PP
+.RS 4
+\%http://github.com/marcomaggi/mmux-unsafe-users-management
+.RE
+.PP
+Development takes place at:
+.PP
+.RS 4
+\%http://github.com/marcomaggi/mmux-unsafe-users-management
+.RE
+
+.\" ------------------------------------------------------------
+
+.SH BUGS
+.PP
+See the issues at the Github project page:
+.PP
+.RS 4
+\%http://github.com/marcomaggi/mmux-unsafe-users-management/issues
+.RE
+
+.\" ------------------------------------------------------------
+
+.SH AUTHOR
+Marco Maggi <marco.maggi-ipsu@poste.it>
+.\" Local Variables:
+.\" fill-column: 72
+.\" default-justification: left
+.\" End:
