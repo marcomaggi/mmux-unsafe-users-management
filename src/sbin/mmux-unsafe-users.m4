@@ -272,6 +272,13 @@ function script_action_SUDO_ADD () {
 	then
 	    mbfl_message_error "adding safe user to unsafe user's group"
 	fi
+
+	# Create  a  "~/.plan"  text  file   in  the  unsafe  user  home
+	# directory.   It is  used by  the program  "finger" to  display
+	# descriptive  informations  about  the user  account;  see  the
+	# manpage of "finger" for details.
+	printf 'Unsafe user account associated to the user "%s".\n' \
+	    "$SAFE_USERNAME" >"$UNSAFE_HOME"/.plan
     else
 	mbfl_main_print_usage_screen_brief
 	exit_because_wrong_num_args
