@@ -24,7 +24,7 @@ dist_sudoers_DATA	= src/etc/sudoers.d/mmux-unsafe-users-management.conf
 ## --------------------------------------------------------------------
 
 completionsdir		= $(sysconfdir)/bash_completion.d
-dist_completions_SCRIPTS= src/completions/mmux-unsafe-users-manager.bash
+dist_completions_SCRIPTS= src/etc/bash_completion.d/mmux-unsafe-users-manager.bash
 
 ## --------------------------------------------------------------------
 
