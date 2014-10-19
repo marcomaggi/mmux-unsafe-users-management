@@ -44,6 +44,9 @@
 
 @set SAFE_USERS_GROUP           @samp{mmux-safe-usrs}
 @set UNSAFE_USERS_GROUP         @samp{mmux-unsafe-usrs}
+@set MANAGER_SCRIPT             mmux-unsafe-users-manager
+@set MANAGER_SCRIPT_COMMAND     @command{@value{MANAGER_SCRIPT}}
+@set UNSAFE_USERS_DOTFILE       @file{~/.mmux-unsafe-users}
 
 @c page
 @c ------------------------------------------------------------
@@ -254,12 +257,12 @@ unsafe users accounts @samp{marco-firefox} and @samp{marco-minecraft};
 he has to issue the commands:
 
 @example
-$ /usr/sbin/mmux-unsafe-users add marco-firefox   -Smarco
-$ /usr/sbin/mmux-unsafe-users add marco-minecraft -Smarco
+$ /usr/sbin/@value{MANAGER_SCRIPT} add marco-firefox   -Smarco
+$ /usr/sbin/@value{MANAGER_SCRIPT} add marco-minecraft -Smarco
 @end example
 
 @noindent
-then create a file @file{~/.mmux-unsafe-users} holding the lines:
+then create a file @value{UNSAFE_USERS_DOTFILE} holding the lines:
 
 @example
 marco-firefox
@@ -297,11 +300,11 @@ If @samp{marco} wants to remove an unsafe user account,
 @strong{including the unsafe user's home directory}, he can do:
 
 @example
-$ /usr/sbin/mmux-unsafe-users del marco-minecraft -Smarco
+$ /usr/sbin/@value{MANAGER_SCRIPT} del marco-minecraft -Smarco
 @end example
 
 @noindent
-and delete the corresponding entry from @file{~/.mmux-unsafe-users}.
+and delete the corresponding entry from @value{UNSAFE_USERS_DOTFILE}.
 
 To run programs under an unsafe user account, @code{marco} can do:
 
@@ -363,16 +366,16 @@ $ sudo chmod g=u,o-rwx ~marco-firefox/.mozilla --recursive
 @chapter The command line utility that does it all
 
 
-Unsafe users are managed with the @command{mmux-unsafe-users} command
+Unsafe users are managed with the @value{MANAGER_SCRIPT_COMMAND} command
 line utility; it should be installed under @file{/usr/sbin}.  Each user
 must prepare a list of unsafe users associated to a safe user account in
-the file @file{~/.mmux-unsafe-users}, one unsafe user name for each
+the file @value{UNSAFE_USERS_DOTFILE}, one unsafe user name for each
 line.
 
 Synopsis:
 
 @example
-mmux-unsafe-users [action] [options]
+@value{MANAGER_SCRIPT} [action] [options]
 @end example
 
 Action commands:
@@ -414,7 +417,7 @@ Select the safe user associated to the unsafe user.
 
 
 This chapter examines how the unsafe user accounts are created, deleted
-and managed by the command line utility @command{mmux-unsafe-users}.
+and managed by the command line utility @value{MANAGER_SCRIPT_COMMAND}.
 
 @menu
 * model permissions::           Restricting usage of this package.
@@ -447,7 +450,7 @@ this group: it is responsibility of the system administrator to do it.
 
 By default, the installed @file{sudoers.d} file requires users to belong
 to the group @value{SAFE_USERS_GROUP} to be able to run the script
-@command{mmux-unsafe-users}.
+@value{MANAGER_SCRIPT_COMMAND}.
 
 @item UNSAFE_USERS_GROUP
 It is the group to which all the unsafe users should belong.  This group
@@ -586,7 +589,7 @@ $SUDO /bin/umount \
 @end example
 
 The binding operation is performed for each unsafe user name listed in
-the file @file{~/.mmux-unsafe-users}.
+the file @value{UNSAFE_USERS_DOTFILE}.
 
 @c page
 @node model xhost
@@ -615,7 +618,7 @@ and disallowed with:
 @end example
 
 The allow operation is performed for each unsafe user name listed in the
-file @file{~/.mmux-unsafe-users}.
+file @value{UNSAFE_USERS_DOTFILE}.
 
 @c page
 @c ------------------------------------------------------------

@@ -18,7 +18,7 @@ chmod 0700 /etc/sudoers.d
 /usr/sbin/groupadd --force $UNSAFEGRP
 
 for item in \
-    /usr/sbin/mmux-unsafe-users					\
+    /usr/sbin/mmux-unsafe-users-manager				\
     /etc/mmux/bash_login.d/mmux-unsafe-users-management.sh	\
     /etc/mmux/bash_logout.d/mmux-unsafe-users-management.sh	\
     /etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh

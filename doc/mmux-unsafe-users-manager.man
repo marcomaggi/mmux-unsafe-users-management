@@ -1,13 +1,13 @@
 .\" Copyright (C), 2014  Marco Maggi
 .\" You may distribute this file under the terms of the GNU Free
 .\" Documentation License.
-.TH mmux-unsafe-users 1 2014-10-15
+.TH mmux-unsafe-users-manager 1 2014-10-15
 .SH NAME
-mmux-unsafe-users \- A Bash script for unsafe users management on Slackware systems.
+mmux-unsafe-users-manager \- A Bash script for unsafe users management on Slackware systems.
 .SH SYNOPSIS
 .sp
 .nf
-\fBmmux-unsafe-users\fR \fIaction\fR \fI...\fR
+\fBmmux-unsafe-users-manager\fR \fIaction\fR \fI...\fR
 .fi
 .sp
 .SH DESCRIPTION

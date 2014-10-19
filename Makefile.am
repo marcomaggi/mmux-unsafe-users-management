@@ -14,7 +14,7 @@ doc_mmux_unsafe_users_management_TEXINFOS	= \
 	doc/gpl-3.0.texi			\
 	doc/macros.texi
 
-dist_man1_MANS		= doc/mmux-unsafe-users.man
+dist_man1_MANS		= doc/mmux-unsafe-users-manager.man
 
 ## --------------------------------------------------------------------
 
@@ -24,7 +24,7 @@ dist_sudoers_DATA	= src/etc/sudoers.d/mmux-unsafe-users-management.conf
 ## --------------------------------------------------------------------
 
 completionsdir		= $(sysconfdir)/bash_completion.d
-dist_completions_SCRIPTS= src/completions/mmux-unsafe-users.bash
+dist_completions_SCRIPTS= src/completions/mmux-unsafe-users-manager.bash
 
 ## --------------------------------------------------------------------
 
@@ -40,16 +40,16 @@ dist_mmuxX11_SCRIPTS		= src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
 ## --------------------------------------------------------------------
 ## scripts
 
-EXTRA_DIST		+= src/sbin/mmux-unsafe-users.m4
+EXTRA_DIST		+= src/sbin/mmux-unsafe-users-manager.m4
 
-dist_sbin_SCRIPTS	= src/sbin/mmux-unsafe-users
+dist_sbin_SCRIPTS	= src/sbin/mmux-unsafe-users-manager
 
 MBFLPP_FLAGS		= --preserve-comments
 
-src/sbin/mmux-unsafe-users : src/sbin/mmux-unsafe-users.m4
+src/sbin/mmux-unsafe-users-manager : src/sbin/mmux-unsafe-users-manager.m4
 	test -d src/sbin || $(MKDIR_P) src/sbin
 	$(MBFLPP) $(MBFLPP_FLAGS) <$< >$@
 
-CLEANFILES		= src/bin/mmux-unsafe-users
+CLEANFILES		= src/bin/mmux-unsafe-users-manager
 
 ### end of file
