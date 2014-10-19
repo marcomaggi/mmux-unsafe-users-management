@@ -44,12 +44,12 @@ EXTRA_DIST		+= src/sbin/mmux-unsafe-users-manager.m4
 
 dist_sbin_SCRIPTS	= src/sbin/mmux-unsafe-users-manager
 
-MBFLPP_FLAGS		= --preserve-comments
+MBFLPP_FLAGS		= --add-bash
 
 src/sbin/mmux-unsafe-users-manager : src/sbin/mmux-unsafe-users-manager.m4
 	test -d src/sbin || $(MKDIR_P) src/sbin
 	$(MBFLPP) $(MBFLPP_FLAGS) <$< >$@
 
-CLEANFILES		= src/bin/mmux-unsafe-users-manager
+CLEANFILES		= src/sbin/mmux-unsafe-users-manager
 
 ### end of file
