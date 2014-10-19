@@ -4,7 +4,7 @@
 # Allow selected unsafe users to run processes under X11.
 
 
-SCRIPT=/usr/sbin/mmux-unsafe-users
+SCRIPT=/usr/sbin/mmux-unsafe-users-manager
 
 if test -x "$SCRIPT"
 then "$SCRIPT" enable-x --verbose
