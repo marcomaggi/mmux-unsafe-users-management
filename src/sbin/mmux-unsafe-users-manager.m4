@@ -714,7 +714,7 @@ function script_action_DISABLE_X () {
 #page
 #### helpers
 
-unsafe_home_is_mounted_p () {
+function unsafe_home_is_mounted_p () {
     mbfl_mandatory_parameter(UNSAFE_HOME, 1, unsafe home pathname)
     mbfl_mandatory_parameter(UNSAFE_MOUNT_POINT, 2, unsafe mount point)
     MOUNT=$(mbfl_program_found /bin/mount)	|| exit_because_program_not_found
