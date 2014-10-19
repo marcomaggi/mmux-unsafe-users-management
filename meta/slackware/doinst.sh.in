@@ -3,14 +3,19 @@
 
 set -e
 
-# The group name, at most 16 characters.
-#   0123456789012345
-GRP=mmuxunsafeusers
+# The group name of safe users, at most 16 characters.
+#       0123456789012345
+SAFEGRP=mmux-safe-usrs
+
+# The group name of UNsafe users, at most 16 characters.
+#         0123456789012345
+UNSAFEGRP=mmux-unsafe-usrs
 
 chmod 0400 /etc/sudoers.d/mmux-unsafe-users-management.conf
 chmod 0700 /etc/sudoers.d
 
-/usr/sbin/groupadd --force $GRP
+/usr/sbin/groupadd --force $SAFEGRP
+/usr/sbin/groupadd --force $UNSAFEGRP
 
 for item in \
     /usr/sbin/mmux-unsafe-users					\
@@ -18,9 +23,10 @@ for item in \
     /etc/mmux/bash_logout.d/mmux-unsafe-users-management.sh	\
     /etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
 do
-    /bin/chgrp $GRP $item --verbose
+    /bin/chgrp $SAFEGRP $item --verbose
     /bin/chmod o-rwx $item --verbose
 done
+unset item
 
 exit 0
 

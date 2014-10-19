@@ -40,6 +40,11 @@
 @set GITHUB_URL                 @url{http://github.com/marcomaggi/mmux-unsafe-users-management}
 @set DOCUMENTATION_URL          @url{http://marcomaggi.github.com/docs/mmux-unsafe-users-management.html}
 
+@c ------------------------------------------------------------
+
+@set SAFE_USERS_GROUP           @samp{mmux-safe-usrs}
+@set UNSAFE_USERS_GROUP         @samp{mmux-unsafe-usrs}
+
 @c page
 @c ------------------------------------------------------------
 @c Copyright notice.
@@ -143,8 +148,8 @@ protect legitimate users from remote attacks.
 
 @item
 This package relies on the program @command{sudo} to allow users
-creation and system mounting and unmounting to the users of the group
-@samp{mmuxunsafeusers}; such policy is configured by the file:
+creation and file system mounting and unmounting to the users of the
+group @value{SAFE_USERS_GROUP}; such policy is configured by the file:
 
 @center @file{/etc/sudoers.d/mmux-unsafe-users-management.conf}
 
@@ -155,9 +160,9 @@ changes for your host.
 
 Remember that such sudoers file must be installed on the system with
 octal access permissions @samp{0400}; the installation directory
-@file{/etc/sudoers.d} must also have octal access permissions
-@samp{0700}.  Such permissions @strong{cannot} be enforced by the
-installation infrastructure of this package.
+@file{/etc/sudoers.d} must have octal access permissions @samp{0700}.
+Such permissions @strong{cannot} be enforced by the installation
+infrastructure of this package.
 
 To enable loading of sudoers configuration modules: we have to include
 the following line in the file @file{/etc/sudoers}:
@@ -165,10 +170,20 @@ the following line in the file @file{/etc/sudoers}:
 @example
 #includedir /etc/sudoers.d
 @end example
+
+This package does @strong{not} add users to the group
+@samp{mmux-safe-usrs}, it is responsibility of the system administrator
+to do it.
+
+@item
+This package's distribution comes with a script
+@file{meta/slackware/doinst.sh} that can be run to create the user
+groups and adjust the access permissions of the installed files.  It is
+usable, in fact, as Slackware package installation script.
 @end itemize
 
 With this system configuration, users that are members of the group
-@code{mmuxunsafeusers} can: add and remove multiple unsafe users
+@value{SAFE_USERS_GROUP} can: add and remove multiple unsafe users
 accounts associated to a safe user; mount an unsafe user's home
 directory under a directory of the associated safe user; enable unsafe
 users to use a X Window server running under the safe user's
@@ -232,18 +247,19 @@ unset mmux_xinitrc_script
 @end example
 @end table
 
-Let's say the user @samp{marco}, which is part of the group
-@code{mmuxunsafeusers}, wants to create the unsafe users accounts
-@samp{marco-firefox} and @samp{marco-minecraft}; he has to issue the
-commands:
+Let's say the user @samp{marco} wants to make use of unsafe user
+accounts to run applications; the system administrator adds it to the
+group @value{SAFE_USERS_GROUP}.  If @samp{marco} wants to create the
+unsafe users accounts @samp{marco-firefox} and @samp{marco-minecraft};
+he has to issue the commands:
 
 @example
-$ /usr/sbin/mmux-unsafe-users add marco-firefox -Smarco
+$ /usr/sbin/mmux-unsafe-users add marco-firefox   -Smarco
 $ /usr/sbin/mmux-unsafe-users add marco-minecraft -Smarco
 @end example
 
 @noindent
-then create a file @file{~/.mmux-safe-users} holding the lines:
+then create a file @file{~/.mmux-unsafe-users} holding the lines:
 
 @example
 marco-firefox
@@ -274,7 +290,7 @@ and the groups:
 
 @example
 $ groups
-marco lp wheel floppy audio video cdrom tape plugdev scanner users marco-firefox marco-minecraft
+marco ... mmux-safe-usrs marco-firefox marco-minecraft
 @end example
 
 If @samp{marco} wants to remove an unsafe user account,
@@ -294,7 +310,7 @@ $ sudo -u marco-firefox -H /opt/firefox/32.0.3/firefox
 @end example
 
 @noindent
-or event better prepare a shell script holding something like:
+or, even better, prepare a shell script holding something like:
 
 @example
 (set -x
@@ -415,14 +431,38 @@ and managed by the command line utility @command{mmux-unsafe-users}.
 @section Restricting usage of this package
 
 
-By default, the @file{sudoers.d} file requires users to belong to the
-group @code{mmuxunsafeusers} to be able to run the script; we must add
-to this group all the users that are meant to use this package.
-
 The distribution comes with a script @file{meta/slackware/doinst.sh}
-that can be run to create the group and adjust the access permissions of
-the installed files.  It is usable, in fact, as Slackware package
-installation script.
+that can be run to create the users' group and adjust the access
+permissions of the installed files.  It is usable, in fact, as Slackware
+package installation script.
+
+This package relies on the existence of two user groups:
+
+@table @value
+@item SAFE_USERS_GROUP
+It is the group to which all the safe users allowed to use this package
+should belong.  This group can be added automatically by running the
+script @file{doinst.sh}.  This package does @strong{not} add users to
+this group: it is responsibility of the system administrator to do it.
+
+By default, the installed @file{sudoers.d} file requires users to belong
+to the group @value{SAFE_USERS_GROUP} to be able to run the script
+@command{mmux-unsafe-users}.
+
+@item UNSAFE_USERS_GROUP
+It is the group to which all the unsafe users should belong.  This group
+can be added automatically by running the script @file{doinst.sh}.  This
+package: automatically adds unsafe users to this group at user--creation
+time; automatically removes unsafe users from this group at
+user--deletion time.
+
+This group of unsafe users can be used to configure file systems' quota.
+@end table
+
+All the scripts in this package should be installed with owner
+@samp{root}, group @value{SAFE_USERS_GROUP} and permissions @samp{0750};
+after package installation, these permissions can be adjusted by running
+the @file{doinst.sh} script.
 
 @c page
 @node model creation
@@ -446,7 +486,7 @@ $SUDO /usr/sbin/useradd \
    --home         /home/unsafe-users/marco-firefox      \
    --create-home                                        \
    --user-group                                         \
-   --groups       audio,video                           \
+   --groups       mmux-unsafe-usrs,audio,video          \
    --shell        /bin/false                            \
    marco-firefox
 @end example
@@ -483,7 +523,7 @@ $SUDO /usr/sbin/usermod marco \
 @noindent
 this way the safe user can access the files in the home directory of the
 unsafe user.@footnote{We have to remember that this group addition will
-become effecting after the safe user has logged out and logged back in.}
+become effective after the safe user has logged out and logged back in.}
 
 @c page
 @node model deletion
@@ -491,7 +531,7 @@ become effecting after the safe user has logged out and logged back in.}
 
 
 Let's take as example the unsafe user @samp{marco-firefox} associated to
-the safe user @samp{marco}.  The unsafe user account and it home
+the safe user @samp{marco}.  The unsafe user account and its home
 directory are removed with:
 
 @example
@@ -517,8 +557,8 @@ directory with the tilde syntax:
 @end example
 
 @noindent
-which is a nice and short syntax, with this package the unsafe user's
-home directory is mounted under a subdirectory of the safe user's home
+which is nice and short, with this package the unsafe user's home
+directory is mounted under a subdirectory of the safe user's home
 directory.
 
 Let's take as example the unsafe user @samp{marco-firefox} associated to

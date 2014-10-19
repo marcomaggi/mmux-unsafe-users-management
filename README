@@ -101,8 +101,9 @@ to really do it:
 4. Usage
 --------
 
-Read the  documentation.  This  package relies on  "sudo" to  allow file
-system mounting and unmounting; such policy is configured by the file:
+Read the  documentation.  This  package relies on  "sudo" to  allow user
+accounts creation and  file system mounting and  unmounting; such policy
+is configured by the file:
 
    /etc/sudoers.d/mmux-unsafe-users-management.conf
 

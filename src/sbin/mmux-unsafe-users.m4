@@ -42,6 +42,16 @@ declare script_EXAMPLES=
 declare -r SCRIPT_ARGV0="$0"
 declare -r UNSAFE_HOME_PARENT=/home/unsafe-users
 
+# Safe users group name, at most 16 characters.
+#
+#                           0123456789012345
+declare -r SAFE_USERS_GROUP=mmux-safe-usrs
+
+# Unsafe users group name, at most 16 characters.
+#
+#                             0123456789012345
+declare -r UNSAFE_USERS_GROUP=mmux-unsafe-usrs
+
 #page
 #### library loading
 
@@ -248,7 +258,7 @@ function script_action_SUDO_ADD () {
 	    --home		"$UNSAFE_HOME"			\
 	    --create-home					\
 	    --user-group					\
-	    --groups		audio,video			\
+	    --groups		$UNSAFE_USERS_GROUP,audio,video	\
 	    --shell		/bin/false			\
 	    "$UNSAFE_USERNAME"
 	then
