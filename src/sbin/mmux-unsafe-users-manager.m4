@@ -180,19 +180,14 @@ function script_action_ADD () {
 	local SAFE_USERNAME=$script_option_SAFE_USERNAME
 	local UNSAFE_USERNAME=${ARGV[0]}
 
-	if test -z "$SAFE_USERNAME"
-	then
-	    mbfl_message_error 'missing safe username option selection'
-	    exit_because_failure
-	fi
 	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'invalid safe username: %s' "$SAFE_USERNAME"
+	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
 	    exit_because_failure
 	fi
 	if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'invalid unsafe username: %s' "$UNSAFE_USERNAME"
+	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
 	    exit_because_failure
 	fi
 
@@ -227,12 +222,12 @@ function script_action_SUDO_ADD () {
 
 	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'invalid safe username: %s' "$SAFE_USERNAME"
+	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
 	    exit_because_failure
 	fi
 	if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'invalid unsafe username: %s' "$UNSAFE_USERNAME"
+	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
 	    exit_because_failure
 	fi
 
@@ -305,19 +300,14 @@ function script_action_DEL () {
 	local SAFE_USERNAME=$script_option_SAFE_USERNAME
 	local UNSAFE_USERNAME=${ARGV[0]}
 
-	if test -z "$SAFE_USERNAME"
-	then
-	    mbfl_message_error 'missing safe username option selection'
-	    exit_because_failure
-	fi
 	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'invalid safe username: %s' "$SAFE_USERNAME"
+	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
 	    exit_because_failure
 	fi
 	if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'invalid unsafe username: %s' "$UNSAFE_USERNAME"
+	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
 	    exit_because_failure
 	fi
 
@@ -349,12 +339,12 @@ function script_action_SUDO_DEL () {
 
 	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'invalid safe username: %s' "$SAFE_USERNAME"
+	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
 	    exit_because_failure
 	fi
 	if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'invalid unsafe username: %s' "$UNSAFE_USERNAME"
+	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
 	    exit_because_failure
 	fi
 
@@ -399,14 +389,9 @@ function script_action_BIND () {
 	if test -z "$SAFE_USERNAME"
 	then SAFE_USERNAME=$USER
 	fi
-	if test -z "$SAFE_USERNAME"
-	then
-	    mbfl_message_error 'missing safe username option selection'
-	    exit_because_failure
-	fi
 	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'invalid safe username: %s' "$SAFE_USERNAME"
+	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
 	    exit_because_failure
 	fi
 
@@ -429,7 +414,7 @@ function script_action_BIND () {
 	do
 	    if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
 	    then
-		mbfl_message_error_printf 'invalid unsafe username: %s' "$UNSAFE_USERNAME"
+		mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
 		exit_because_failure
 	    fi
 
@@ -471,12 +456,12 @@ function script_action_SUDO_BIND () {
 
 	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'invalid safe username: %s' "$SAFE_USERNAME"
+	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
 	    exit_because_failure
 	fi
 	if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'invalid unsafe username: %s' "$UNSAFE_USERNAME"
+	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
 	    exit_because_failure
 	fi
 
@@ -518,7 +503,7 @@ function script_action_UNBIND () {
 	fi
 	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'invalid safe username: %s' "$SAFE_USERNAME"
+	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
 	    exit_because_failure
 	fi
 
@@ -541,7 +526,7 @@ function script_action_UNBIND () {
 	do
 	    if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
 	    then
-		mbfl_message_error_printf 'invalid unsafe username: %s' "$UNSAFE_USERNAME"
+		mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
 		exit_because_failure
 	    fi
 
@@ -572,12 +557,12 @@ function script_action_SUDO_UNBIND () {
 
 	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'invalid safe username: %s' "$SAFE_USERNAME"
+	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
 	    exit_because_failure
 	fi
 	if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'invalid unsafe username: %s' "$UNSAFE_USERNAME"
+	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
 	    exit_because_failure
 	fi
 
@@ -618,7 +603,7 @@ function script_action_ENABLE_X () {
     fi
     if ! mbfl_string_is_identifier "$SAFE_USERNAME"
     then
-	mbfl_message_error_printf 'invalid safe username: %s' "$SAFE_USERNAME"
+	mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
 	exit_because_failure
     fi
 
@@ -642,7 +627,7 @@ function script_action_ENABLE_X () {
 	do
 	    if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
 	    then
-		mbfl_message_error_printf 'invalid unsafe username: %s' "$UNSAFE_USERNAME"
+		mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
 		exit_because_failure
 	    fi
 
@@ -676,7 +661,7 @@ function script_action_DISABLE_X () {
     fi
     if ! mbfl_string_is_identifier "$SAFE_USERNAME"
     then
-	mbfl_message_error_printf 'invalid safe username: %s' "$SAFE_USERNAME"
+	mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
 	exit_because_failure
     fi
 
@@ -693,7 +678,7 @@ function script_action_DISABLE_X () {
 	do
 	    if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
 	    then
-		mbfl_message_error_printf 'invalid unsafe username: %s' "$UNSAFE_USERNAME"
+		mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
 		exit_because_failure
 	    fi
 
