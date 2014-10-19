@@ -45,7 +45,7 @@
 @set SAFE_USERS_GROUP           @samp{mmux-safe-usrs}
 @set UNSAFE_USERS_GROUP         @samp{mmux-unsafe-usrs}
 @set MANAGER_SCRIPT             mmux-unsafe-users-manager
-@set MANAGER_SCRIPT_COMMAND     @command{@value{MANAGER_SCRIPT}}
+@set MANAGER_SCRIPT_COMMAND     @command{mmux-unsafe-users-manager}
 @set UNSAFE_USERS_DOTFILE       @file{~/.mmux-unsafe-users}
 
 @c page
