@@ -380,7 +380,8 @@ function script_action_SUDO_DEL () {
 #### binding unsafe users home to safe user directory
 
 function script_action_BIND () {
-    local FLAGS
+    local FLAGS INSTALL
+    INSTALL=$(mbfl_program_found /usr/bin/install)  || exit_because_program_not_found
     if mbfl_wrong_num_args 0 $ARGC
     then
 	local SAFE_USERNAME=$script_option_SAFE_USERNAME
