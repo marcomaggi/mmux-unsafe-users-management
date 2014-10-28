@@ -19,8 +19,8 @@ chmod 0700 /etc/sudoers.d
 
 for item in \
     /usr/sbin/mmux-unsafe-users-manager				\
-    /etc/mmux/bash_login.d/mmux-unsafe-users-management.sh	\
-    /etc/mmux/bash_logout.d/mmux-unsafe-users-management.sh	\
+    /etc/mmux/user-login.d/mmux-unsafe-users-management.sh	\
+    /etc/mmux/user-logout.d/mmux-unsafe-users-management.sh	\
     /etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
 do
     /bin/chgrp $SAFEGRP $item --verbose

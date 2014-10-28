@@ -201,8 +201,8 @@ The package @value{PACKAGE} installs the following scripts with access
 permissions @code{0755}:
 
 @example
-/etc/mmux/bash_login.d/mmux-unsafe-users-management.sh
-/etc/mmux/bash_logout.d/mmux-unsafe-users-management.sh
+/etc/mmux/user-login.d/mmux-unsafe-users-management.sh
+/etc/mmux/user-logout.d/mmux-unsafe-users-management.sh
 /etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
 @end example
 
@@ -214,7 +214,7 @@ shell commands in its home directory files:
 Should contain:
 
 @example
-for mmux_login_script in /etc/mmux/bash_login.d/*.sh
+for mmux_login_script in /etc/mmux/user-login.d/*.sh
 do
   if test -x "$mmux_login_script"
   then source "$mmux_login_script"
@@ -227,7 +227,7 @@ unset mmux_login_script
 Should contain:
 
 @example
-for mmux_logout_script in /etc/mmux/bash_logout.d/*.sh
+for mmux_logout_script in /etc/mmux/user-logout.d/*.sh
 do
   if test -x "$mmux_logout_script"
   then source "$mmux_logout_script"

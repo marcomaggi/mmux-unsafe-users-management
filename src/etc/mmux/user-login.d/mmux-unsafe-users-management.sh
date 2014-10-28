@@ -1,5 +1,5 @@
 #!/bin/bash
-# /etc/mmux/bash_login.d/mmux-unsafe-users-management.sh --
+# /etc/mmux/user-login.d/mmux-unsafe-users-management.sh --
 #
 # Login script, to be executed  at user login-time by "~/.bash_login" or
 # similar scripts.  Sets up support for unsafe user accounts managed
