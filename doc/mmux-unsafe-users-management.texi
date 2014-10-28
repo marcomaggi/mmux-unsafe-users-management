@@ -217,7 +217,7 @@ Should contain:
 for mmux_login_script in /etc/mmux/user-login.d/*.sh
 do
   if test -x "$mmux_login_script"
-  then source "$mmux_login_script"
+  then "$mmux_login_script"
   fi
 done
 unset mmux_login_script
@@ -230,7 +230,7 @@ Should contain:
 for mmux_logout_script in /etc/mmux/user-logout.d/*.sh
 do
   if test -x "$mmux_logout_script"
-  then source "$mmux_logout_script"
+  then "$mmux_logout_script"
   fi
 done
 unset mmux_logout_script
@@ -243,7 +243,7 @@ Should contain:
 for mmux_xinitrc_script in /etc/mmux/xinitrc.d/*.sh
 do
   if test -x "$mmux_xinitrc_script"
-  then source "$mmux_xinitrc_script"
+  then "$mmux_xinitrc_script"
   fi
 done
 unset mmux_xinitrc_script
