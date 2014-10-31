@@ -15,11 +15,7 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 
-AC_CHECK_PROG([MBFLCONFIG],[mbfl-config],[mbfl-config],[:])
-AS_IF([test "$MBFLCONFIG" = :],[AC_MSG_ERROR([cannot find MBFL],[1])])
-
-AC_CHECK_PROG([MBFLPP],[mbflpp.sh],[mbflpp.sh],[:])
-AS_IF([test "$MBFLPP" = :],[AC_MSG_ERROR([cannot find MBFL preprocessor],[1])])
+MBFL_SETUP
 
 AC_CONFIG_FILES([Makefile]
   [meta/slackware/doinst.sh])
