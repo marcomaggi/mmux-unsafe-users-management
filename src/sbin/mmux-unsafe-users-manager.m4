@@ -8,7 +8,7 @@
 #
 #
 #
-# Copyright (C) 2014 Marco Maggi <marco.maggi-ipsu@poste.it>
+# Copyright (C) 2014, 2018 Marco Maggi <marco.maggi-ipsu@poste.it>
 #
 # This  program  is free  software:  you  can redistribute  it
 # and/or modify it  under the terms of the  GNU General Public
@@ -32,7 +32,7 @@
 
 declare -r script_PROGNAME=mmux-unsafe-users
 declare -r script_VERSION=0.1d0
-declare -r script_COPYRIGHT_YEARS='2014'
+declare -r script_COPYRIGHT_YEARS='2014, 2018'
 declare -r script_AUTHOR='Marco Maggi'
 declare -r script_LICENSE=GPL
 declare script_USAGE="usage: ${script_PROGNAME} [action] [options]"
@@ -88,8 +88,6 @@ mbfl_dialog_enable_programs
 mbfl_program_enable_sudo
 mbfl_file_enable_remove
 
-mbfl_declare_program /bin/mount
-mbfl_declare_program /bin/umount
 mbfl_declare_program /bin/grep
 mbfl_declare_program /bin/chmod
 mbfl_declare_program /usr/bin/install
@@ -108,14 +106,10 @@ mbfl_declare_program /usr/sbin/groupmod
 mbfl_declare_action_set MAIN
 mbfl_declare_action MAIN ADD		NONE add		'Add an unsafe user.'
 mbfl_declare_action MAIN DEL		NONE del		'Delete an unsafe user.'
-mbfl_declare_action MAIN BIND		NONE bind		'Mount unsafe users home directories under safe user one.'
-mbfl_declare_action MAIN UNBIND		NONE unbind		'Unmount unsafe users home directories under safe user one.'
 mbfl_declare_action MAIN ENABLE_X	NONE enable-x		'Enable unsafe users running X applications in safe user X server.'
 mbfl_declare_action MAIN DISABLE_X	NONE disable-x		'Disable unsafe users running X applications in safe user X server.'
 mbfl_declare_action MAIN SUDO_ADD	NONE sudo-add		'Internal action.'
 mbfl_declare_action MAIN SUDO_DEL	NONE sudo-del		'Internal action.'
-mbfl_declare_action MAIN SUDO_BIND	NONE sudo-bind		'Internal action.'
-mbfl_declare_action MAIN SUDO_UNBIND	NONE sudo-unbind	'Internal action.'
 mbfl_declare_action MAIN HELP		NONE help		'Print help screen and exit.'
 
 ## --------------------------------------------------------------------
@@ -128,16 +122,6 @@ function script_before_parsing_options_ADD () {
 function script_before_parsing_options_DEL () {
     script_USAGE="usage: ${script_PROGNAME} del UNSAFE-USERNAME --safe-user=SAFE-USERNAME [options]"
     script_DESCRIPTION='Remove an unsafe user.'
-    mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
-}
-function script_before_parsing_options_BIND () {
-    script_USAGE="usage: ${script_PROGNAME} bind [options]"
-    script_DESCRIPTION='Mount unsafe users home directories under safe user one.'
-    mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
-}
-function script_before_parsing_options_UNBIND () {
-    script_USAGE="usage: ${script_PROGNAME} unbind [options]"
-    script_DESCRIPTION='Unmount unsafe users home directories under safe user one.'
     mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
 }
 function script_before_parsing_options_ENABLE_X () {
@@ -159,14 +143,6 @@ function script_before_parsing_options_SUDO_ADD () {
 }
 function script_before_parsing_options_SUDO_DEL () {
     script_USAGE="usage: ${script_PROGNAME} sudo-del SAFE-USERNAME UNSAFE-USERNAME [options]"
-    script_DESCRIPTION='Internal action.'
-}
-function script_before_parsing_options_SUDO_BIND () {
-    script_USAGE="usage: ${script_PROGNAME} sudo-bind [options]"
-    script_DESCRIPTION='Internal action.'
-}
-function script_before_parsing_options_SUDO_UNBIND () {
-    script_USAGE="usage: ${script_PROGNAME} sudo-unbind [options]"
     script_DESCRIPTION='Internal action.'
 }
 
@@ -377,215 +353,6 @@ function script_action_SUDO_DEL () {
 }
 
 #page
-#### binding unsafe users home to safe user directory
-
-function script_action_BIND () {
-    local FLAGS INSTALL
-    INSTALL=$(mbfl_program_found /usr/bin/install)  || exit_because_program_not_found
-    if mbfl_wrong_num_args 0 $ARGC
-    then
-	local SAFE_USERNAME=$script_option_SAFE_USERNAME
-	local UNSAFE_USERNAME
-
-	if test -z "$SAFE_USERNAME"
-	then SAFE_USERNAME=$USER
-	fi
-	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	    exit_because_failure
-	fi
-
-	mbfl_message_verbose_printf 'binding home directories of unsafe users associated to: %s\n' "$SAFE_USERNAME"
-
-	local UNSAFE_MOUNT_POINT_PARENT="/home/$SAFE_USERNAME/var/unsafe-users"
-	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.mmux-unsafe-users"
-	if ! mbfl_file_is_file "$UNSAFE_USERS_LIST_FILE"
-	then
-	    mbfl_message_error_printf 'missing list of unsafe users file: %s\n' "$UNSAFE_USERS_LIST_FILE"
-	    exit_because_failure
-	fi
-
-	mbfl_option_verbose		&& FLAGS="$FLAGS --verbose"
-    	mbfl_option_interactive		&& FLAGS="$FLAGS --interactive"
-	mbfl_option_show_program	&& FLAGS="$FLAGS --show-program"
-	mbfl_option_test		&& FLAGS="$FLAGS --test"
-
-	while read UNSAFE_USERNAME
-	do
-	    if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
-	    then
-		mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-		exit_because_failure
-	    fi
-
-	    mbfl_message_verbose_printf 'binding home directory of unsafe user: %s\n' "$UNSAFE_USERNAME"
-
-	    local UNSAFE_HOME="$UNSAFE_HOME_PARENT/$UNSAFE_USERNAME"
-	    local UNSAFE_MOUNT_POINT="$UNSAFE_MOUNT_POINT_PARENT/$UNSAFE_USERNAME"
-	    if ! mbfl_file_is_directory "$UNSAFE_MOUNT_POINT"
-	    then
-		mbfl_message_verbose_printf 'creating mount point for unsafe user home: %s\n' "$UNSAFE_MOUNT_POINT"
-		if ! mbfl_program_exec "$INSTALL" -m 0700 -d "$UNSAFE_MOUNT_POINT"
-		then
-    		    mbfl_message_error 'creating mount point for unsafe user home directory'
-    		    exit_failure
-		fi
-	    fi
-
-	    if unsafe_home_is_mounted_p "$UNSAFE_HOME" "$UNSAFE_MOUNT_POINT"
-	    then mbfl_message_verbose_printf 'unsafe user home directory already bound to: %s\n' "$UNSAFE_MOUNT_POINT"
-	    else
-		mbfl_program_declare_sudo_user root
-		if ! mbfl_program_exec "$SCRIPT_ARGV0" sudo-bind "$SAFE_USERNAME" "$UNSAFE_USERNAME" $FLAGS
-		then mbfl_message_error_printf 'binding unsafe user home to safe user directory, unsafe user: %s' "$UNSAFE_USERNAME"
-		fi
-	    fi
-	done <"$UNSAFE_USERS_LIST_FILE"
-    else
-	mbfl_main_print_usage_screen_brief
-	exit_because_wrong_num_args
-    fi
-}
-function script_action_SUDO_BIND () {
-    INSTALL=$(mbfl_program_found /usr/bin/install)	|| exit_because_program_not_found
-    MOUNT=$(mbfl_program_found   /bin/mount)		|| exit_because_program_not_found
-    if mbfl_wrong_num_args 2 $ARGC
-    then
-	local SAFE_USERNAME=${ARGV[0]}
-	local UNSAFE_USERNAME=${ARGV[1]}
-
-	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	    exit_because_failure
-	fi
-	if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-	    exit_because_failure
-	fi
-
-	local UNSAFE_MOUNT_POINT_PARENT="/home/$SAFE_USERNAME/var/unsafe-users"
-	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.mmux-unsafe-users"
-	local UNSAFE_HOME="$UNSAFE_HOME_PARENT/$UNSAFE_USERNAME"
-	local UNSAFE_MOUNT_POINT="$UNSAFE_MOUNT_POINT_PARENT/$UNSAFE_USERNAME"
-	if ! unsafe_home_is_mounted_p "$UNSAFE_HOME" "$UNSAFE_MOUNT_POINT"
-	then
-	    if ! mbfl_program_exec "$MOUNT" --bind "$UNSAFE_HOME" "$UNSAFE_MOUNT_POINT"
-	    then
-		mbfl_message_error_printf 'binding unsafe user home directory to safe user directory'
-		exit_because_failure
-	    fi
-	fi
-    else
-	mbfl_main_print_usage_screen_brief
-	exit_because_wrong_num_args
-    fi
-}
-
-#page
-#### unbinding unsafe users home to safe user directory
-
-function script_action_UNBIND () {
-    local FLAGS
-    if mbfl_wrong_num_args 0 $ARGC
-    then
-	local SAFE_USERNAME=$script_option_SAFE_USERNAME
-	local UNSAFE_USERNAME
-
-	if test -z "$SAFE_USERNAME"
-	then SAFE_USERNAME=$USER
-	fi
-	if test -z "$SAFE_USERNAME"
-	then
-	    mbfl_message_error 'missing safe username option selection'
-	    exit_because_failure
-	fi
-	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	    exit_because_failure
-	fi
-
-	mbfl_message_verbose_printf 'unbinding home directories of unsafe users associated to: %s\n' "$SAFE_USERNAME"
-
-	local UNSAFE_MOUNT_POINT_PARENT="/home/$SAFE_USERNAME/var/unsafe-users"
-	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.mmux-unsafe-users"
-	if ! mbfl_file_is_file "$UNSAFE_USERS_LIST_FILE"
-	then
-	    mbfl_message_error_printf 'missing list of unsafe users file: %s\n' "$UNSAFE_USERS_LIST_FILE"
-	    exit_because_failure
-	fi
-
-	mbfl_option_verbose		&& FLAGS="$FLAGS --verbose"
-    	mbfl_option_interactive		&& FLAGS="$FLAGS --interactive"
-	mbfl_option_show_program	&& FLAGS="$FLAGS --show-program"
-	mbfl_option_test		&& FLAGS="$FLAGS --test"
-
-	while read UNSAFE_USERNAME
-	do
-	    if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
-	    then
-		mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-		exit_because_failure
-	    fi
-
-	    mbfl_message_verbose_printf 'unbinding home directory of unsafe user: %s\n' "$UNSAFE_USERNAME"
-
-	    local UNSAFE_HOME="$UNSAFE_HOME_PARENT/$UNSAFE_USERNAME"
-	    local UNSAFE_MOUNT_POINT="$UNSAFE_MOUNT_POINT_PARENT/$UNSAFE_USERNAME"
-	    if unsafe_home_is_mounted_p "$UNSAFE_HOME" "$UNSAFE_MOUNT_POINT"
-	    then
-		mbfl_program_declare_sudo_user root
-		if ! mbfl_program_exec "$SCRIPT_ARGV0" sudo-unbind "$SAFE_USERNAME" "$UNSAFE_USERNAME" $FLAGS
-		then mbfl_message_error_printf 'unbinding unsafe user home to safe user directory, unsafe user: %s' "$UNSAFE_USERNAME"
-		fi
-	    else mbfl_message_verbose_printf 'unsafe user home directory already unbound from: %s\n' "$UNSAFE_MOUNT_POINT"
-	    fi
-	done <"$UNSAFE_USERS_LIST_FILE"
-    else
-	mbfl_main_print_usage_screen_brief
-	exit_because_wrong_num_args
-    fi
-}
-function script_action_SUDO_UNBIND () {
-    UMOUNT=$(mbfl_program_found /bin/umount)	|| exit_because_program_not_found
-    if mbfl_wrong_num_args 2 $ARGC
-    then
-	local SAFE_USERNAME=${ARGV[0]}
-	local UNSAFE_USERNAME=${ARGV[1]}
-
-	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	    exit_because_failure
-	fi
-	if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-	    exit_because_failure
-	fi
-
-	local UNSAFE_MOUNT_POINT_PARENT="/home/$SAFE_USERNAME/var/unsafe-users"
-	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.mmux-unsafe-users"
-	local UNSAFE_HOME="$UNSAFE_HOME_PARENT/$UNSAFE_USERNAME"
-	local UNSAFE_MOUNT_POINT="$UNSAFE_MOUNT_POINT_PARENT/$UNSAFE_USERNAME"
-	if unsafe_home_is_mounted_p "$UNSAFE_HOME" "$UNSAFE_MOUNT_POINT"
-	then
-	    if ! mbfl_program_exec "$UMOUNT" "$UNSAFE_MOUNT_POINT"
-	    then
-		mbfl_message_error_printf 'unbinding unsafe user home directory to safe user directory'
-		exit_because_failure
-	    fi
-	fi
-    else
-	mbfl_main_print_usage_screen_brief
-	exit_because_wrong_num_args
-    fi
-}
-
-#page
 #### enabling/disabling access to X host
 
 function script_action_ENABLE_X () {
@@ -695,17 +462,6 @@ function script_action_DISABLE_X () {
 	mbfl_main_print_usage_screen_brief
 	exit_because_wrong_num_args
     fi
-}
-
-#page
-#### helpers
-
-function unsafe_home_is_mounted_p () {
-    mbfl_mandatory_parameter(UNSAFE_HOME, 1, unsafe home pathname)
-    mbfl_mandatory_parameter(UNSAFE_MOUNT_POINT, 2, unsafe mount point)
-    MOUNT=$(mbfl_program_found /bin/mount)	|| exit_because_program_not_found
-    GREP=$(mbfl_program_found  /bin/grep)	|| exit_because_program_not_found
-    mbfl_program_exec "$MOUNT" | mbfl_program_exec "$GREP" --silent "$UNSAFE_HOME on $UNSAFE_MOUNT_POINT"
 }
 
 #page

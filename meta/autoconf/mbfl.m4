@@ -7,7 +7,7 @@
 #
 #
 #
-# Copyright (c) 2009, 2012 Marco Maggi
+# Copyright (c) 2009, 2012, 2018 Marco Maggi
 # <marco.maggi-ipsu@poste.it>
 #
 # This  program  is free  software:  you  can redistribute  it
@@ -35,10 +35,10 @@ AC_DEFUN([MBFL_SETUP],
    mbfl_LIBRARY=$("${MBFLCONFIG}" --library)
    mbfl_TEST_LIBRARY=$("${MBFLCONFIG}" --testlib)
    MBFL_LIB=$("${MBFLCONFIG}" --libpath)
-   AC_CHECK_FILE([${mbfl_LIBRARY}],,
-       [AC_MSG_ERROR([cannot find MBFL library ${mbfl_LIBRARY}],2)])
-   AC_CHECK_FILE([${mbfl_TEST_LIBRARY}],,
-       [AC_MSG_ERROR([cannot find MBFL test library ${mbfl_TEST_LIBRARY}],2)])
+   # AC_CHECK_FILE([${mbfl_LIBRARY}],,
+   #     [AC_MSG_ERROR([cannot find MBFL library ${mbfl_LIBRARY}],2)])
+   # AC_CHECK_FILE([${mbfl_TEST_LIBRARY}],,
+   #     [AC_MSG_ERROR([cannot find MBFL test library ${mbfl_TEST_LIBRARY}],2)])
    AC_SUBST(mbfl_LIBRARY)
    AC_SUBST(MBFL_LIB)])
 

@@ -28,14 +28,8 @@ dist_completions_SCRIPTS= src/etc/bash_completion.d/mmux-unsafe-users-manager.ba
 
 ## --------------------------------------------------------------------
 
-mmuxbashlogindir		= $(sysconfdir)/mmux/user-login.d
-dist_mmuxbashlogin_SCRIPTS	= src/etc/mmux/user-login.d/mmux-unsafe-users-management.sh
-
-mmuxbashlogoutdir		= $(sysconfdir)/mmux/user-logout.d
-dist_mmuxbashlogout_SCRIPTS	= src/etc/mmux/user-logout.d/mmux-unsafe-users-management.sh
-
-mmuxX11dir			= $(sysconfdir)/mmux/xinitrc.d
-dist_mmuxX11_SCRIPTS		= src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
+mmuxX11dir		= $(sysconfdir)/mmux/xinitrc.d
+dist_mmuxX11_SCRIPTS	= src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
 
 ## --------------------------------------------------------------------
 ## scripts

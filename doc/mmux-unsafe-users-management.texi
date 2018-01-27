@@ -33,7 +33,7 @@
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2014
+@set COPYRIGHT_YEARS            2014, 2018
 
 @c ------------------------------------------------------------
 
@@ -54,22 +54,19 @@
 @c ------------------------------------------------------------
 
 @copying
-This document describes version @version{} of @value{PACKAGE}, a
-distribution of @gnu{} Bash scripts; it provides utilities to handle
-unsafe user accounts.  The package is distributed under the terms of the
-@gnu{} General Public License (@gpl{}).
+This document describes version @version{} of @value{PACKAGE}, a distribution of @gnu{} Bash
+scripts; it provides utilities to handle unsafe user accounts.  The package is distributed under the
+terms of the @gnu{} General Public License (@gpl{}).
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
 
 @quotation
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the @gnu{} Free Documentation License, Version 1.3 or
-any later version published by the Free Software Foundation; with
-Invariant Sections being ``@gnu{} Free Documentation License'' and
-``@gnu{} General Public License'', no Front--Cover Texts, and no
-Back--Cover Texts.  A copy of the license is included in the section
-entitled ``@gnu{} Free Documentation License''.
+Permission is granted to copy, distribute and/or modify this document under the terms of the @gnu{}
+Free Documentation License, Version 1.3 or any later version published by the Free Software
+Foundation; with Invariant Sections being ``@gnu{} Free Documentation License'' and ``@gnu{} General
+Public License'', no Front--Cover Texts, and no Back--Cover Texts.  A copy of the license is
+included in the section entitled ``@gnu{} Free Documentation License''.
 @end quotation
 @end copying
 
@@ -135,62 +132,51 @@ Indexes
 @chapter Overview of the package
 
 
-This document describes version @version{} of @value{PACKAGE}, a
-distribution of @gnu{} Bash scripts; it proposes a model to manage
-unsafe user profiles associated to safe user accounts on Slackware
-GNU+Linux systems.  It depends upon the Marco's Bash Functions Library
-(@acronym{MBFL}).  To use this package, the following system
-requirements must be satisfied:
+This document describes version @version{} of @value{PACKAGE}, a distribution of @gnu{} Bash
+scripts; it proposes a model to manage unsafe user profiles associated to safe user accounts on
+Slackware GNU+Linux systems.  It depends upon the Marco's Bash Functions Library (@acronym{MBFL}).
+To use this package, the following system requirements must be satisfied:
 
 @itemize
 @item
-This package is meant to be used on computers for personal use, on which
-only trusted users have accounts.  It introduces a security layer to run
-applications under restricted privileges, with the purpose of partially
-protect legitimate users from remote attacks.
+This package is meant to be used on computers for personal use, on which only trusted users have
+accounts.  It introduces a security layer to run applications under restricted privileges, with the
+purpose of partially protect legitimate users from remote attacks.
 
 @item
-This package relies on the program @command{sudo} to allow users
-creation and file system mounting and unmounting to the users of the
-group @value{SAFE_USERS_GROUP}; such policy is configured by the file:
+This package relies on the program @command{sudo} to allow users creation to the users of the group
+@value{SAFE_USERS_GROUP}; such policy is configured by the file:
 
 @center @file{/etc/sudoers.d/mmux-unsafe-users-management.conf}
 
 @noindent
-which is installed on the system by this package: do not blindly accept
-this configuration file!  Take a good look at it and make the necessary
-changes for your host.
+which is installed on the system by this package: do not blindly accept this configuration file!
+Take a good look at it and make the necessary changes for your host.
 
-Remember that such sudoers file must be installed on the system with
-octal access permissions @samp{0400}; the installation directory
-@file{/etc/sudoers.d} must have octal access permissions @samp{0700}.
-Such permissions @strong{cannot} be enforced by the installation
-infrastructure of this package.
+Remember that such sudoers file must be installed on the system with octal access permissions
+@samp{0400}; the installation directory @file{/etc/sudoers.d} must have octal access permissions
+@samp{0700}.  Such permissions @strong{cannot} be enforced by the installation infrastructure of
+this package.
 
-To enable loading of sudoers configuration modules: we have to include
-the following line in the file @file{/etc/sudoers}:
+To enable loading of sudoers configuration modules: we have to include the following line in the
+file @file{/etc/sudoers}:
 
 @example
 #includedir /etc/sudoers.d
 @end example
 
-This package does @strong{not} add users to the group
-@samp{mmux-safe-usrs}, it is responsibility of the system administrator
-to do it.
+This package does @strong{not} add users to the group @samp{mmux-safe-usrs}, it is responsibility of
+the system administrator to do it.
 
 @item
-This package's distribution comes with a script
-@file{meta/slackware/doinst.sh} that can be run to create the user
-groups and adjust the access permissions of the installed files.  It is
-usable, in fact, as Slackware package installation script.
+This package's distribution comes with a script @file{meta/slackware/doinst.sh} that can be run to
+create the user groups and adjust the access permissions of the installed files.  It is usable, in
+fact, as Slackware package installation script.
 @end itemize
 
-With this system configuration, users that are members of the group
-@value{SAFE_USERS_GROUP} can: add and remove multiple unsafe users
-accounts associated to a safe user; mount an unsafe user's home
-directory under a directory of the associated safe user; enable unsafe
-users to use a X Window server running under the safe user's
-permissions.
+With this system configuration, users that are members of the group @value{SAFE_USERS_GROUP} can:
+add and remove multiple unsafe users accounts associated to a safe user; enable unsafe users to use
+a X Window server running under the safe user's permissions.
 
 @c page
 @node using
@@ -201,8 +187,6 @@ The package @value{PACKAGE} installs the following scripts with access
 permissions @code{0755}:
 
 @example
-/etc/mmux/user-login.d/mmux-unsafe-users-management.sh
-/etc/mmux/user-logout.d/mmux-unsafe-users-management.sh
 /etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
 @end example
 
@@ -210,32 +194,6 @@ Every user that intends to use the facilities should add appropriate
 shell commands in its home directory files:
 
 @table @file
-@item ~/.bash_login
-Should contain:
-
-@example
-for mmux_login_script in /etc/mmux/user-login.d/*.sh
-do
-  if test -x "$mmux_login_script"
-  then "$mmux_login_script"
-  fi
-done
-unset mmux_login_script
-@end example
-
-@item ~/.bash_logout
-Should contain:
-
-@example
-for mmux_logout_script in /etc/mmux/user-logout.d/*.sh
-do
-  if test -x "$mmux_logout_script"
-  then "$mmux_logout_script"
-  fi
-done
-unset mmux_logout_script
-@end example
-
 @item ~/.xinitrc
 Should contain:
 
@@ -274,18 +232,9 @@ finally log out and log back in.  Now he should be able to check the
 unsafe users directories:
 
 @smallexample
-$ ls -l ~/var/unsafe-users/
+$ ls -l /home/unsafe-users/
 drwxrws---  20 marco-firefox  marco-fi 4096 2014-10-11 10:22 marco-firefox
 drwxrws---   6 marco-minecraf marco-mi 4096 2014-10-11 15:33 marco-minecraft
-@end smallexample
-
-@noindent
-and mounts:
-
-@smallexample
-$ mount | grep unsafe-users
-/home/unsafe-users/marco-firefox on /home/marco/var/unsafe-users/marco-firefox type none (rw,bind)
-/home/unsafe-users/marco-minecraft on /home/marco/var/unsafe-users/marco-minecraft type none (rw,bind)
 @end smallexample
 
 @noindent
@@ -387,12 +336,6 @@ Add an unsafe user associated to the selected safe user.
 @item del UNSAFE-USERNAME --safe-user=SAFE-USERNAME [options]
 Delete an unsafe user associated to the selected safe user.
 
-@item bind [options]
-Mount unsafe users home directories under a safe user safe one.
-
-@item unbind [options]
-Mount unsafe users home directories under a safe user safe one.
-
 @item enable-x [options]
 Enable unsafe users running X applications in a safe user X server.
 
@@ -423,8 +366,6 @@ and managed by the command line utility @value{MANAGER_SCRIPT_COMMAND}.
 * model permissions::           Restricting usage of this package.
 * model creation::              How to add an unsafe user account.
 * model deletion::              How to delete an unsafe user account.
-* model bindings::              How unsafe users home directories are
-                                bound.
 * model xhost::                 Enabling and disabling running X
                                 applications.
 @end menu
@@ -441,8 +382,8 @@ package installation script.
 
 This package relies on the existence of two user groups:
 
-@table @value
-@item SAFE_USERS_GROUP
+@table @asis
+@item @value{SAFE_USERS_GROUP}
 It is the group to which all the safe users allowed to use this package
 should belong.  This group can be added automatically by running the
 script @file{doinst.sh}.  This package does @strong{not} add users to
@@ -452,7 +393,7 @@ By default, the installed @file{sudoers.d} file requires users to belong
 to the group @value{SAFE_USERS_GROUP} to be able to run the script
 @value{MANAGER_SCRIPT_COMMAND}.
 
-@item UNSAFE_USERS_GROUP
+@item @value{UNSAFE_USERS_GROUP}
 It is the group to which all the unsafe users should belong.  This group
 can be added automatically by running the script @file{doinst.sh}.  This
 package: automatically adds unsafe users to this group at user--creation
@@ -546,50 +487,6 @@ The unsafe user group is removed with:
 @example
 $SUDO /usr/sbin/groupdel marco-firefox
 @end example
-
-@c page
-@node model bindings
-@section How unsafe users home directories are bound
-
-
-Even though it is always possible to reference an unsafe user's home
-directory with the tilde syntax:
-
-@example
-~marco-firefox
-@end example
-
-@noindent
-which is nice and short, with this package the unsafe user's home
-directory is mounted under a subdirectory of the safe user's home
-directory.
-
-Let's take as example the unsafe user @samp{marco-firefox} associated to
-the safe user @samp{marco}.  When it does not already exist, the mount
-point is created with:
-
-@example
-/usr/bin/install -m 0700 -d ~/var/unsafe-users/marco-firefox
-@end example
-
-The unsafe user's home directory is mounted with:
-
-@example
-$SUDO /bin/mount --bind \
-   /home/unsafe-users/marco-firefox \
-   /home/marco/var/unsafe-users/marco-firefox
-@end example
-
-@noindent
-and unmounted with:
-
-@example
-$SUDO /bin/umount \
-   /home/marco/var/unsafe-users/marco-firefox
-@end example
-
-The binding operation is performed for each unsafe user name listed in
-the file @value{UNSAFE_USERS_DOTFILE}.
 
 @c page
 @node model xhost

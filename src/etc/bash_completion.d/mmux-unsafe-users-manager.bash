@@ -9,7 +9,7 @@ function p-mmux-unsafe-users-manager () {
     # COMP_CWORD is zero based.  Index 0 is the "mmux-unsafe-users-manager" word.
     case "$COMP_CWORD" in
         1)
-            local first_word_completions='add del bind unbind enable-x disable-x help'
+            local first_word_completions='add del enable-x disable-x help'
             COMPREPLY=(`compgen -W "$first_word_completions" -- "$word_to_be_completed"`)
             ;;
     esac
