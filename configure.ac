@@ -2,8 +2,10 @@ dnl @configure_input@
 dnl
 
 AC_PREREQ([2.69])
-AC_INIT([MMUX Unsafe Users Management],[0.3.0],[marco.maggi-ipsu@poste.it],
+MMUX_PKG_VERSIONS([0],[3],[1],,[noarch])
+AC_INIT([MMUX Unsafe Users Management],MMUX_PACKAGE_VERSION,[marco.maggi-ipsu@poste.it],
    [mmux-unsafe-users-management],[http://github.com/marcomaggi/mmux-unsafe-users-management/])
+MMUX_INIT
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_MACRO_DIR([meta/autotools])
 AC_CONFIG_AUX_DIR([meta/autotools])
@@ -19,10 +21,7 @@ MBFL_SETUP
 
 AC_CONFIG_FILES([Makefile]
   [meta/slackware/doinst.sh])
+MMUX_OUTPUT
 AC_OUTPUT
 
 ### end of file
-# Local Variables:
-# mode: autoconf
-# page-delimiter: "^#page"
-# End:

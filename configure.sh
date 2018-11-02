@@ -1,3 +1,4 @@
+#!/bin/sh
 # configure.sh --
 #
 # Run this to configure.
