@@ -106,6 +106,6 @@ src/etc/bash_completion.d/mmux-unsafe-users-manager.bash: src/sbin/mmux-unsafe-u
 #### X11 interface
 
 mmuxX11dir		= $(sysconfdir)/mmux/xinitrc.d
-dist_mmuxX11_SCRIPTS	= src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
+mmuxX11_SCRIPTS		= src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
 
 ### end of file

@@ -40,7 +40,8 @@ AC_CHECK_PROG([BASH_PROGRAM],[bash],[bash],[:])
 MBFL_SETUP
 
 AC_CONFIG_FILES([Makefile]
-  [meta/slackware/doinst.sh])
+  [meta/slackware/doinst.sh]
+  [src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh])
 MMUX_OUTPUT
 AC_OUTPUT
 
