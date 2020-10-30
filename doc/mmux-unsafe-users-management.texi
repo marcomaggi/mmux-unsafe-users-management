@@ -115,6 +115,7 @@ included in the section entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* prerequisites::               Prerequisites to use the package.
 * using::                       How to use the package.
 * tips::                        Useful stuff to know.
 * script::                      The command line utility that does it all.
@@ -141,6 +142,11 @@ This document describes version @version{} of @value{PACKAGE}, a distribution of
 scripts; it proposes a model to manage unsafe user profiles associated to safe user accounts on
 Slackware @gnu{}+Linux systems.  This package depends upon the external package Marco's Bash
 Functions Library (@mbfl{}), at least version @value{REQUIRED_MBFL_VERSION}.
+
+@c page
+@node prerequisites
+@chapter Prerequisites to use the package
+
 
 To use this package, the following system requirements must be satisfied:
 
@@ -296,29 +302,26 @@ or, even better, prepare a shell script holding something like:
 @chapter Useful stuff to know
 
 
-While setting up applications to run under the unsafe user, we should
-remember the following:
+While setting up applications to run under the unsafe user, we should remember the following:
 
 @itemize
 @item
-Prepare fonts configuration with @code{fontconfig}.  We must install in
-the unsafe user's home directory a suitable @file{.fonts.conf} file and
-build the fonts cache, else applications will not be able to use the
-installed fonts.  For example the user @samp{marco} might do:
+Prepare fonts configuration with @code{fontconfig}.  We must install in the unsafe user's home
+directory a suitable @file{.fonts.conf} file and build the fonts cache, else applications will not
+be able to use the installed fonts.  For example the user @samp{marco} might do:
 
 @example
 $ cd ~marco
-$ cp .fonts.conf /home/unsafe-users/marco-firefox
+$ cp .fonts.conf ~marco-firefox/
 $ sudo -u marco-firefox /bin/bash
 $ cd ~
 $ fc-cache -f -v
 @end example
 
 @item
-About web browsing with Mozilla Firefox: notice that it is possible to
-setup full installation of Firefox for a normal user and then copy the
-whole @file{~/.mozilla} directory to the home directory of the unsafe
-user; just remember to change the ownership and access permissions:
+About web browsing with Mozilla Firefox: notice that it is possible to setup full installation of
+Firefox for a normal user and then copy the whole @file{~/.mozilla} directory to the home directory
+of the unsafe user; just remember to change the ownership and access permissions:
 
 @example
 $ cp --recursive ~marco/.mozilla ~marco-firefox/
@@ -333,11 +336,9 @@ $ sudo chmod g=u,o-rwx ~marco-firefox/.mozilla --recursive
 @chapter The command line utility that does it all
 
 
-Unsafe users are managed with the @value{MANAGER_SCRIPT_COMMAND} command
-line utility; it should be installed under @file{/usr/sbin}.  Each user
-must prepare a list of unsafe users associated to a safe user account in
-the file @value{UNSAFE_USERS_DOTFILE}, one unsafe user name for each
-line.
+Unsafe users are managed with the @value{MANAGER_SCRIPT_COMMAND} command line utility; it should be
+installed under @file{/usr/sbin}.  Each user must prepare a list of unsafe users associated to a
+safe user account in the file @value{UNSAFE_USERS_DOTFILE}, one unsafe user name for each line.
 
 Synopsis:
 
