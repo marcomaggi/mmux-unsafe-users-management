@@ -235,38 +235,34 @@ function script_before_parsing_options_DEL () {
     mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
 }
 function script_action_DEL () {
-    local FLAGS
-    if mbfl_wrong_num_args 1 $ARGC
+    if ! mbfl_wrong_num_args 1 $ARGC
     then
-	local SAFE_USERNAME=$script_option_SAFE_USERNAME
-	local UNSAFE_USERNAME=${ARGV[0]}
-
-	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	    exit_because_failure
-	fi
-	if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-	    exit_because_failure
-	fi
-
-	mbfl_option_verbose		&& FLAGS="$FLAGS --verbose"
-    	mbfl_option_interactive		&& FLAGS="$FLAGS --interactive"
-	mbfl_option_show_program	&& FLAGS="$FLAGS --show-program"
-	mbfl_option_test		&& FLAGS="$FLAGS --test"
-
-	mbfl_program_declare_sudo_user root
-	if mbfl_program_exec "$SCRIPT_ARGV0" sudo-del "$SAFE_USERNAME" "$UNSAFE_USERNAME" $FLAGS
-	then exit_success
-	else
-    	    mbfl_message_error 'deleting user'
-    	    exit_failure
-	fi
-    else
 	mbfl_main_print_usage_screen_brief
 	exit_because_wrong_num_args
+    fi
+
+    mbfl_command_line_argument(UNSAFE_USERNAME, 0)
+    local SAFE_USERNAME=$script_option_SAFE_USERNAME
+    mbfl_local_varref(SUBSCRIPT_FLAGS)
+
+    if ! mbfl_string_is_identifier "$SAFE_USERNAME"
+    then
+	mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
+	exit_because_failure
+    fi
+    if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
+    then
+	mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
+	exit_because_failure
+    fi
+
+    mbfl_getopts_gather_mbfl_options_var mbfl_datavar(SUBSCRIPT_FLAGS)
+    mbfl_program_declare_sudo_user root
+    if mbfl_program_exec "$SCRIPT_ARGV0" sudo-del "$SAFE_USERNAME" "$UNSAFE_USERNAME" $SUBSCRIPT_FLAGS
+    then exit_success
+    else
+    	mbfl_message_error 'deleting user'
+    	exit_because_failure
     fi
 }
 
@@ -277,55 +273,56 @@ function script_before_parsing_options_SUDO_DEL () {
     script_DESCRIPTION='Internal action.'
 }
 function script_action_SUDO_DEL () {
-    local USERDEL GROUPDEL
-    USERDEL=$(mbfl_program_found /usr/sbin/userdel) || exit_because_program_not_found
-    GROUPDEL=$(mbfl_program_found /usr/sbin/groupdel) || exit_because_program_not_found
-    if mbfl_wrong_num_args 2 $ARGC
+    if ! mbfl_wrong_num_args 2 $ARGC
     then
-	local SAFE_USERNAME=${ARGV[0]}
-	local UNSAFE_USERNAME=${ARGV[1]}
-
-	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	    exit_because_failure
-	fi
-	if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-	    exit_because_failure
-	fi
-
-	if mbfl_option_interactive
-	then
-	    local MESSAGE=$(printf 'delete the user "%s"' "$UNSAFE_USERNAME")
-	    if ! mbfl_dialog_yes_or_no "$MESSAGE"
-	    then
-		mbfl_message_verbose_printf 'skipping deletion of user: %s\n' "$UNSAFE_USERNAME"
-		exit_success
-	    fi
-	fi
-
-	mbfl_message_verbose_printf 'deleting user: %s\n' "$UNSAFE_USERNAME"
-	if ! mbfl_program_exec "$USERDEL" "$UNSAFE_USERNAME" --remove
-	then mbfl_message_error_printf 'removing unsafe user: %s' "$UNSAFE_USERNAME"
-	fi
-
-	# When  "groupdel"  removes  the unsafe  group:  it  also
-	# removes it  from the list  of groups of which  the safe
-	# user is part.
-	mbfl_message_verbose_printf 'deleting group: %s\n' "$UNSAFE_USERNAME"
-	if ! mbfl_program_exec "$GROUPDEL" "$UNSAFE_USERNAME"
-	then mbfl_message_error_printf 'removing unsafe group: %s' "$UNSAFE_USERNAME"
-	fi
-    else
 	mbfl_main_print_usage_screen_brief
 	exit_because_wrong_num_args
+    fi
+
+    mbfl_local_varref(USERDEL)
+    mbfl_local_varref(GROUPDEL)
+    mbfl_program_found_var mbfl_datavar(USERDEL)	/usr/sbin/userdel  || exit $?
+    mbfl_program_found_var mbfl_datavar(GROUPDEL)	/usr/sbin/groupdel || exit $?
+    mbfl_command_line_argument(SAFE_USERNAME,   0)
+    mbfl_command_line_argument(UNSAFE_USERNAME, 1)
+
+    if ! mbfl_string_is_identifier "$SAFE_USERNAME"
+    then
+	mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
+	exit_because_failure
+    fi
+    if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
+    then
+	mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
+	exit_because_failure
+    fi
+
+    if mbfl_option_interactive
+    then
+	local MESSAGE
+	printf -v MESSAGE 'delete the user "%s"' "$UNSAFE_USERNAME"
+	if ! mbfl_dialog_yes_or_no "$MESSAGE"
+	then
+	    mbfl_message_verbose_printf 'skipping deletion of user: %s\n' "$UNSAFE_USERNAME"
+	    exit_success
+	fi
+    fi
+
+    mbfl_message_verbose_printf 'deleting user: %s\n' "$UNSAFE_USERNAME"
+    if ! mbfl_program_exec "$USERDEL" "$UNSAFE_USERNAME" --remove
+    then mbfl_message_error_printf 'removing unsafe user: %s' "$UNSAFE_USERNAME"
+    fi
+
+    # When "groupdel" removes the unsafe group: it also  removes it from the list of groups of which
+    # the safe user is part.
+    mbfl_message_verbose_printf 'deleting group: %s\n' "$UNSAFE_USERNAME"
+    if ! mbfl_program_exec "$GROUPDEL" "$UNSAFE_USERNAME"
+    then mbfl_message_error_printf 'removing unsafe group: %s' "$UNSAFE_USERNAME"
     fi
 }
 
 #page
-#### enabling/disabling access to X host
+#### enabling access to X host
 
 function script_before_parsing_options_ENABLE_X () {
     script_USAGE="usage: ${script_PROGNAME} enable-x [options]"
@@ -333,15 +330,21 @@ function script_before_parsing_options_ENABLE_X () {
     mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
 }
 function script_action_ENABLE_X () {
-    local XHOST UNSAFE_USERNAME
-    XHOST=$(mbfl_program_found /usr/bin/xhost)	|| exit_because_program_not_found
-
-    # Acquire safe username.
-    local SAFE_USERNAME=$script_option_SAFE_USERNAME
-    if test -z "$SAFE_USERNAME"
-    then SAFE_USERNAME=$USER
+    if ! mbfl_wrong_num_args 0 $ARGC
+    then
+	mbfl_main_print_usage_screen_brief
+	exit_because_wrong_num_args
     fi
-    if test -z "$SAFE_USERNAME"
+
+    mbfl_local_varref(XHOST)
+    mbfl_program_found_var mbfl_datavar(XHOST)	/usr/bin/xhost || exit $?
+
+    mbfl_message_verbose_printf 'acquire safe username\n'
+    mbfl_local_varref(SAFE_USERNAME, "$script_option_SAFE_USERNAME")
+    if mbfl_string_is_empty "$SAFE_USERNAME"
+    then mbfl_system_whoami_var mbfl_datavar(SAFE_USERNAME)
+    fi
+    if mbfl_string_is_empty "$SAFE_USERNAME"
     then
 	mbfl_message_error 'missing safe username option selection'
 	exit_because_failure
@@ -352,45 +355,41 @@ function script_action_ENABLE_X () {
 	exit_because_failure
     fi
 
-    if mbfl_wrong_num_args 0 $ARGC
+    mbfl_message_verbose_printf 'enabling X host access control\n'
+    if ! mbfl_program_exec "$XHOST" -
     then
-	mbfl_message_verbose_printf 'enabling X host access control\n'
-	if ! mbfl_program_exec "$XHOST" -
-	then
-	    mbfl_message_error 'enabling X host access control'
-	    exit_because_failure
-	fi
-
-	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.mmux-unsafe-users"
-	if ! mbfl_file_is_file "$UNSAFE_USERS_LIST_FILE"
-	then
-	    mbfl_message_error_printf 'missing list of unsafe users file: %s\n' "$UNSAFE_USERS_LIST_FILE"
-	    exit_because_failure
-	fi
-
-	while read UNSAFE_USERNAME
-	do
-	    if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
-	    then
-		mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-		exit_because_failure
-	    fi
-
-	    mbfl_message_verbose_printf 'enabling unsafe user running X applications: %s\n' "$UNSAFE_USERNAME"
-
-	    if ! mbfl_program_exec "$XHOST" "+local:$UNSAFE_USERNAME"
-	    then
-		mbfl_message_error 'enabling unsafe user running X applications'
-		exit_because_failure
-	    fi
-	done <"$UNSAFE_USERS_LIST_FILE"
-    else
-	mbfl_main_print_usage_screen_brief
-	exit_because_wrong_num_args
+	mbfl_message_error 'enabling X host access control'
+	exit_because_failure
     fi
+
+    local UNSAFE_USERS_LIST_FILE=~${SAFE_USERNAME}/.mmux-unsafe-users
+    if ! mbfl_file_is_file "$UNSAFE_USERS_LIST_FILE"
+    then
+	mbfl_message_error_printf 'missing list of unsafe users file: %s\n' "$UNSAFE_USERS_LIST_FILE"
+	exit_because_failure
+    fi
+
+    local UNSAFE_USERNAME
+    while read UNSAFE_USERNAME
+    do
+	if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
+	then
+	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
+	    exit_because_failure
+	fi
+
+	mbfl_message_verbose_printf 'enabling unsafe user running X applications: %s\n' "$UNSAFE_USERNAME"
+
+	if ! mbfl_program_exec "$XHOST" "+local:$UNSAFE_USERNAME"
+	then
+	    mbfl_message_error 'enabling unsafe user running X applications'
+	    exit_because_failure
+	fi
+    done <"$UNSAFE_USERS_LIST_FILE"
 }
 
-### ------------------------------------------------------------------------
+#page
+#### disabling access to X host
 
 function script_before_parsing_options_DISABLE_X () {
     script_USAGE="usage: ${script_PROGNAME} disable-x [options]"
@@ -398,15 +397,21 @@ function script_before_parsing_options_DISABLE_X () {
     mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
 }
 function script_action_DISABLE_X () {
-    local XHOST UNSAFE_USERNAME
-    XHOST=$(mbfl_program_found /usr/bin/xhost)	|| exit_because_program_not_found
-    local SAFE_USERNAME=$script_option_SAFE_USERNAME
-
-    # Acquire safe username.
-    if test -z "$SAFE_USERNAME"
-    then SAFE_USERNAME=$USER
+    if ! mbfl_wrong_num_args 0 $ARGC
+    then
+	mbfl_main_print_usage_screen_brief
+	exit_because_wrong_num_args
     fi
-    if test -z "$SAFE_USERNAME"
+
+    mbfl_local_varref(XHOST)
+    mbfl_program_found_var mbfl_datavar(XHOST)	/usr/bin/xhost || exit $?
+
+    mbfl_message_verbose_printf 'acquire safe username\n'
+    mbfl_local_varref(SAFE_USERNAME, "$script_option_SAFE_USERNAME")
+    if mbfl_string_is_empty "$SAFE_USERNAME"
+    then mbfl_system_whoami_var mbfl_datavar(SAFE_USERNAME)
+    fi
+    if mbfl_string_is_empty "$SAFE_USERNAME"
     then
 	mbfl_message_error 'missing safe username option selection'
 	exit_because_failure
@@ -417,35 +422,30 @@ function script_action_DISABLE_X () {
 	exit_because_failure
     fi
 
-    if mbfl_wrong_num_args 0 $ARGC
+    local UNSAFE_USERS_LIST_FILE=~${SAFE_USERNAME}/.mmux-unsafe-users
+    if ! mbfl_file_is_file "$UNSAFE_USERS_LIST_FILE"
     then
-	local UNSAFE_USERS_LIST_FILE="/home/$SAFE_USERNAME/.mmux-unsafe-users"
-	if ! mbfl_file_is_file "$UNSAFE_USERS_LIST_FILE"
+	mbfl_message_error_printf 'missing list of unsafe users file: %s\n' "$UNSAFE_USERS_LIST_FILE"
+	exit_because_failure
+    fi
+
+    local UNSAFE_USERNAME
+    while read UNSAFE_USERNAME
+    do
+	if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'missing list of unsafe users file: %s\n' "$UNSAFE_USERS_LIST_FILE"
+	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
 	    exit_because_failure
 	fi
 
-	while read UNSAFE_USERNAME
-	do
-	    if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
-	    then
-		mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-		exit_because_failure
-	    fi
+	mbfl_message_verbose_printf 'enabling unsafe user running X applications: %s\n' "$UNSAFE_USERNAME"
 
-	    mbfl_message_verbose_printf 'enabling unsafe user running X applications: %s\n' "$UNSAFE_USERNAME"
-
-	    if ! mbfl_program_exec "$XHOST" "-local:$UNSAFE_USERNAME"
-	    then
-		mbfl_message_error 'enabling unsafe user running X applications'
-		exit_because_failure
-	    fi
-	done <"$UNSAFE_USERS_LIST_FILE"
-    else
-	mbfl_main_print_usage_screen_brief
-	exit_because_wrong_num_args
-    fi
+	if ! mbfl_program_exec "$XHOST" "-local:$UNSAFE_USERNAME"
+	then
+	    mbfl_message_error 'enabling unsafe user running X applications'
+	    exit_because_failure
+	fi
+    done <"$UNSAFE_USERS_LIST_FILE"
 }
 
 #page
