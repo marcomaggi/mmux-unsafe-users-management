@@ -85,11 +85,12 @@ dist_sudoers_DATA	= src/etc/sudoers.d/mmux-unsafe-users-management.conf
 #### command line completions
 
 completionsdir			= $(sysconfdir)/bash_completion.d
-completions_SCRIPTS		= \
+completions_SCRIPTS		=					\
 	src/etc/bash_completion.d/mmux-unsafe-users-manager.bash
 
-CLEANFILES			+= \
-	src/etc/bash_completion.d/mmux-unsafe-users-manager.bash
+CLEANFILES			+=					\
+	src/etc/bash_completion.d/mmux-unsafe-users-manager.bash	\
+	src/etc/bash_completion.d/$(am__dirstamp)
 
 completions_PREREQUISITES	= \
 	src/etc/bash_completion.d/$(am__dirstamp)
