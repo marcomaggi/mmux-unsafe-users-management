@@ -359,10 +359,10 @@ Delete an unsafe user associated to the selected safe user.
 Enable unsafe users running X applications in a safe user X server.
 
 @item disable-x [options]
-Enable unsafe users running X applications in a safe user X server.
+Disable unsafe users running X applications in a safe user X server.
 
 @item help [options]
-Print help screen and exit.
+Help the user of this script.
 @end table
 
 Options:
