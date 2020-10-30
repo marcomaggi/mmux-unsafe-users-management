@@ -9,17 +9,21 @@ CLEANFILES		=
 
 #### documentation
 
-EXTRA_DIST		+= doc/mmux-unsafe-users-management.style.css
-CLEANFILES		+= doc/mmux-unsafe-users-management.css
+EXTRA_DIST		+= \
+	doc/mmux-unsafe-users-management.style.css
+CLEANFILES		+=						\
+	doc/mmux-unsafe-users-management.css				\
+	doc/mmux-unsafe-users-management.html/$(am__dirstamp)
 
 AM_MAKEINFOFLAGS	= --no-split
-AM_MAKEINFOHTMLFLAGS	= --split=node -c WORDS_IN_PAGE=0 --css-ref=mmux-unsafe-users-management.css \
+AM_MAKEINFOHTMLFLAGS	= --split=node -c WORDS_IN_PAGE=0		\
+	--css-ref=mmux-unsafe-users-management.css			\
 	-c PRE_BODY_CLOSE="<p>This document describes version <tt>$(PACKAGE_VERSION)</tt> of <em>$(PACKAGE_NAME)</em>.</p>"
 
 info_TEXINFOS		= doc/mmux-unsafe-users-management.texi
-doc_mmux_unsafe_users_management_TEXINFOS	= \
-	doc/fdl-1.3.texi			\
-	doc/gpl-3.0.texi			\
+doc_mmux_unsafe_users_management_TEXINFOS	=			\
+	doc/fdl-1.3.texi						\
+	doc/gpl-3.0.texi						\
 	doc/macros.texi
 
 dist_man1_MANS		= doc/mmux-unsafe-users-manager.man
