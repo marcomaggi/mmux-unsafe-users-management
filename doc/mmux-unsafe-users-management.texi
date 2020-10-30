@@ -378,8 +378,8 @@ Select the safe user associated to the unsafe user.
 @chapter How unsafe users are associated to safe ones
 
 
-This chapter examines how the unsafe user accounts are created, deleted
-and managed by the command line utility @value{MANAGER_SCRIPT_COMMAND}.
+This chapter examines how the unsafe user accounts are created, deleted and managed by the command
+line utility @value{MANAGER_SCRIPT_COMMAND}.
 
 @menu
 * model permissions::           Restricting usage of this package.
@@ -394,38 +394,37 @@ and managed by the command line utility @value{MANAGER_SCRIPT_COMMAND}.
 @section Restricting usage of this package
 
 
-The distribution comes with a script @file{meta/slackware/doinst.sh}
-that can be run to create the users' group and adjust the access
-permissions of the installed files.  It is usable, in fact, as Slackware
-package installation script.
+The distribution comes with a script @file{meta/slackware/doinst.sh} that can be run to create the
+users' group and adjust the access permissions of the installed files.  It is usable, in fact, as
+Slackware package installation script.
 
 This package relies on the existence of two user groups:
 
 @table @asis
 @item @value{SAFE_USERS_GROUP}
-It is the group to which all the safe users allowed to use this package
-should belong.  This group can be added automatically by running the
-script @file{doinst.sh}.  This package does @strong{not} add users to
-this group: it is responsibility of the system administrator to do it.
+It is the group to which all the safe users allowed to use this package should belong.  This group
+can be added automatically by running the script @file{doinst.sh}.  This package does @strong{not}
+add users to this group: it is responsibility of the system administrator to do it.
 
-By default, the installed @file{sudoers.d} file requires users to belong
-to the group @value{SAFE_USERS_GROUP} to be able to run the script
-@value{MANAGER_SCRIPT_COMMAND}.
+By default, the installed @file{sudoers.d} file requires users to belong to the group
+@value{SAFE_USERS_GROUP} to be able to run the script @value{MANAGER_SCRIPT_COMMAND}.
 
 @item @value{UNSAFE_USERS_GROUP}
-It is the group to which all the unsafe users should belong.  This group
-can be added automatically by running the script @file{doinst.sh}.  This
-package: automatically adds unsafe users to this group at user--creation
-time; automatically removes unsafe users from this group at
-user--deletion time.
+It is the group to which all the unsafe users should belong.  This group can be added automatically
+by running the script @file{doinst.sh}.  This package: automatically adds unsafe users to this group
+at user--creation time; automatically removes unsafe users from this group at user--deletion time.
 
 This group of unsafe users can be used to configure file systems' quota.
 @end table
 
-All the scripts in this package should be installed with owner
-@samp{root}, group @value{SAFE_USERS_GROUP} and permissions @samp{0750};
-after package installation, these permissions can be adjusted by running
-the @file{doinst.sh} script.
+All the scripts in this package should be installed with owner @samp{root}, group
+@value{SAFE_USERS_GROUP} and permissions @samp{0750}; after package installation, these permissions
+can be adjusted by running the @file{doinst.sh} script.  We should see something like:
+
+@example
+$ ls -l /usr/sbin/mmux-unsafe-users-manager
+-rwxr-x--- 1 root mmux-safe-usrs 13K Jan  5  2020 /usr/sbin/mmux-unsafe-users-manager
+@end example
 
 @c page
 @node model creation
