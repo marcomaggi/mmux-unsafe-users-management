@@ -8,7 +8,7 @@
 #
 #
 #
-# Copyright (C) 2014, 2018 Marco Maggi <marco.maggi-ipsu@poste.it>
+# Copyright (C) 2014, 2018, 2020 Marco Maggi <mrc.mgg@gmail.com>
 #
 # This  program  is free  software:  you  can redistribute  it
 # and/or modify it  under the terms of the  GNU General Public

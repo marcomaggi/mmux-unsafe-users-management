@@ -1,4 +1,4 @@
-.\" Copyright (C), 2014  Marco Maggi
+.\" Copyright (C), 2014, 2020  Marco Maggi
 .\" You may distribute this file under the terms of the GNU Free
 .\" Documentation License.
 .TH mmux-unsafe-users-manager 1 2014-10-15
@@ -58,7 +58,7 @@ See the issues at the Github project page:
 .\" ------------------------------------------------------------
 
 .SH AUTHOR
-Marco Maggi <marco.maggi-ipsu@poste.it>
+Marco Maggi <mrc.mgg@gmail.com>
 .\" Local Variables:
 .\" fill-column: 72
 .\" default-justification: left

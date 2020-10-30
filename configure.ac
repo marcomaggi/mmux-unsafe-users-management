@@ -3,8 +3,9 @@ dnl
 
 AC_PREREQ([2.69])
 MMUX_PKG_VERSIONS([0],[4],[0],[devel.0],[noarch])
-AC_INIT([MMUX Unsafe Users Management],MMUX_PACKAGE_VERSION,[marco.maggi-ipsu@poste.it],
-   [mmux-unsafe-users-management],[http://github.com/marcomaggi/mmux-unsafe-users-management/])
+AC_INIT([MMUX Unsafe Users Management],MMUX_PACKAGE_VERSION,[mrc.mgg@gmail.com],
+   [mmux-unsafe-users-management],
+   [http://github.com/marcomaggi/mmux-unsafe-users-management/])
 MMUX_INIT
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_MACRO_DIR([meta/autotools])
