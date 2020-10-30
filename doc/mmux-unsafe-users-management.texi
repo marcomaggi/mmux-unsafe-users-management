@@ -140,8 +140,9 @@ Indexes
 This document describes version @version{} of @value{PACKAGE}, a distribution of @gnu{} Bash
 scripts; it proposes a model to manage unsafe user profiles associated to safe user accounts on
 Slackware @gnu{}+Linux systems.  This package depends upon the external package Marco's Bash
-Functions Library (@mbfl{}), at least version @value{REQUIRED_MBFL_VERSION}.  To use this package,
-the following system requirements must be satisfied:
+Functions Library (@mbfl{}), at least version @value{REQUIRED_MBFL_VERSION}.
+
+To use this package, the following system requirements must be satisfied:
 
 @itemize
 @item
@@ -175,6 +176,15 @@ This package does @strong{not} add users to the group @samp{mmux-safe-usrs}, it 
 the system administrator to do it.
 
 @item
+The system administrator is expected to add the groups @code{mmux-safe-usrs} and
+@code{mmux-unsafe-usrs}, for example using the commands:
+
+@example
+/usr/sbin/groupadd --force mmux-safe-usrs
+/usr/sbin/groupadd --force mmux-unsafe-usrs
+@end example
+
+@item
 This package's distribution comes with a script @file{meta/slackware/doinst.sh} that can be run to
 create the user groups and adjust the access permissions of the installed files.  It is usable, in
 fact, as Slackware package installation script.
@@ -189,15 +199,14 @@ a X Window server running under the safe user's permissions.
 @chapter How to use the package
 
 
-The package @value{PACKAGE} installs the following scripts with access
-permissions @code{0755}:
+The package @value{PACKAGE} installs the following scripts with access permissions @code{0755}:
 
 @example
 /etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
 @end example
 
-Every user that intends to use the facilities should add appropriate
-shell commands in its home directory files:
+Every user that intends to use the facilities should add appropriate shell commands in its home
+directory files:
 
 @table @file
 @item ~/.xinitrc
@@ -214,15 +223,19 @@ unset mmux_xinitrc_script
 @end example
 @end table
 
-Let's say the user @samp{marco} wants to make use of unsafe user
-accounts to run applications; the system administrator adds it to the
-group @value{SAFE_USERS_GROUP}.  If @samp{marco} wants to create the
-unsafe users accounts @samp{marco-firefox} and @samp{marco-minecraft};
-he has to issue the commands:
+Let's say the user @samp{marco} wants to make use of unsafe user accounts to run applications; the
+system administrator adds it to the group @value{SAFE_USERS_GROUP}, for example with the command:
 
 @example
-$ /usr/sbin/@value{MANAGER_SCRIPT} add marco-firefox   -Smarco
-$ /usr/sbin/@value{MANAGER_SCRIPT} add marco-minecraft -Smarco
+/usr/sbin/usermod marco --append --groups @value{SAFE_USERS_GROUP}
+@end example
+
+If @samp{marco} wants to create the unsafe users accounts @samp{marco-firefox} and
+@samp{marco-banking}; he has to issue the commands:
+
+@example
+$ /usr/sbin/@value{MANAGER_SCRIPT} add marco-firefox -Smarco
+$ /usr/sbin/@value{MANAGER_SCRIPT} add marco-banking -Smarco
 @end example
 
 @noindent
@@ -230,17 +243,16 @@ then create a file @value{UNSAFE_USERS_DOTFILE} holding the lines:
 
 @example
 marco-firefox
-marco-minecraft
+marco-banking
 @end example
 
 @noindent
-finally log out and log back in.  Now he should be able to check the
-unsafe users directories:
+finally log out and log back in.  Now he should be able to check the unsafe users directories:
 
 @smallexample
 $ ls -l /home/unsafe-users/
-drwxrws---  20 marco-firefox  marco-fi 4096 2014-10-11 10:22 marco-firefox
-drwxrws---   6 marco-minecraf marco-mi 4096 2014-10-11 15:33 marco-minecraft
+drwxrws--- 14 marco-banking marco-banking 4.0K Jul 18 07:41 /home/unsafe-users/marco-banking/
+drwxrws--- 24 marco-firefox marco-firefox 4.0K May 23 16:47 /home/unsafe-users/marco-firefox/
 @end smallexample
 
 @noindent
@@ -248,14 +260,14 @@ and the groups:
 
 @example
 $ groups
-marco ... mmux-safe-usrs marco-firefox marco-minecraft
+marco ... mmux-safe-usrs marco-firefox marco-banking
 @end example
 
 If @samp{marco} wants to remove an unsafe user account,
 @strong{including the unsafe user's home directory}, he can do:
 
 @example
-$ /usr/sbin/@value{MANAGER_SCRIPT} del marco-minecraft -Smarco
+$ /usr/sbin/@value{MANAGER_SCRIPT} del marco-banking -Smarco
 @end example
 
 @noindent
