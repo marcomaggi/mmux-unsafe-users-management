@@ -11,11 +11,17 @@ Notes for revision v0.4.0-devel.0
 
 * Added automatic generation of command line completion script.
 
+* Added requirement: the safe users must belong to the group mmux-unsafe-usrs.
+
+* Changed permissions of "/home/unsafe-users" to 0750.
+
+* Changed ownership of "/home/unsafe-users" to root:mmux-unsafe-usrs.
+
 
 ### end of file
 # Local Variables:
 # mode: text
-# fill-column: 72
+# fill-column: 78
 # paragraph-start: "*"
 # ispell-local-dictionary: "en_GB-ise-w_accents"
 # End:

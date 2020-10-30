@@ -19,14 +19,20 @@ chmod 0700 /etc/sudoers.d
 
 for item in \
     /usr/sbin/mmux-unsafe-users-manager				\
-    /etc/mmux/user-login.d/mmux-unsafe-users-management.sh	\
-    /etc/mmux/user-logout.d/mmux-unsafe-users-management.sh	\
     /etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
 do
     /bin/chgrp $SAFEGRP $item --verbose
     /bin/chmod o-rwx $item --verbose
 done
 unset item
+
+if test -d /home/unsafe-users
+then
+    /bin/chmod 0750      /home/unsafe-users
+    /bin/chown root      /home/unsafe-users
+    /bin/chgrp $SAFEGRP  /home/unsafe-users
+else /usr/bin/install -m 0750 -o root -g $SAFEGRP /home/unsafe-users
+fi
 
 exit 0
 

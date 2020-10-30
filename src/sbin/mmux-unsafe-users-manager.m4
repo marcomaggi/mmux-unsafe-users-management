@@ -103,38 +103,34 @@ function script_before_parsing_options_ADD () {
     mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
 }
 function script_action_ADD () {
-    local FLAGS
-    if mbfl_wrong_num_args 1 $ARGC
+    if ! mbfl_wrong_num_args 1 $ARGC
     then
-	local SAFE_USERNAME=$script_option_SAFE_USERNAME
-	local UNSAFE_USERNAME=${ARGV[0]}
-
-	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	    exit_because_failure
-	fi
-	if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-	    exit_because_failure
-	fi
-
-	mbfl_option_verbose		&& FLAGS="$FLAGS --verbose"
-    	mbfl_option_interactive		&& FLAGS="$FLAGS --interactive"
-	mbfl_option_show_program	&& FLAGS="$FLAGS --show-program"
-	mbfl_option_test		&& FLAGS="$FLAGS --test"
-
-	mbfl_program_declare_sudo_user root
-	if mbfl_program_exec "$SCRIPT_ARGV0" sudo-add "$SAFE_USERNAME" "$UNSAFE_USERNAME" $FLAGS
-	then exit_success
-	else
-    	    mbfl_message_error 'adding user'
-    	    exit_failure
-	fi
-    else
 	mbfl_main_print_usage_screen_brief
 	exit_because_wrong_num_args
+    fi
+
+    mbfl_command_line_argument(UNSAFE_USERNAME, 0)
+    local SAFE_USERNAME=$script_option_SAFE_USERNAME
+    mbfl_local_varref(SUBSCRIPT_FLAGS)
+
+    if ! mbfl_string_is_identifier "$SAFE_USERNAME"
+    then
+	mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
+	exit_because_failure
+    fi
+    if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
+    then
+	mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
+	exit_because_failure
+    fi
+
+    mbfl_getopts_gather_mbfl_options_var mbfl_datavar(SUBSCRIPT_FLAGS)
+    mbfl_program_declare_sudo_user root
+    if mbfl_program_exec "$SCRIPT_ARGV0" sudo-add "$SAFE_USERNAME" "$UNSAFE_USERNAME" $SUBSCRIPT_FLAGS
+    then exit_success
+    else
+    	mbfl_message_error 'adding user'
+    	exit_because_failure
     fi
 }
 
@@ -145,85 +141,89 @@ function script_before_parsing_options_SUDO_ADD () {
     script_DESCRIPTION='Internal action.'
 }
 function script_action_SUDO_ADD () {
-    local INSTALL USERADD USERMOD CHMOD CHMOD_FLAGS
-    INSTALL=$(mbfl_program_found /usr/bin/install)  || exit_because_program_not_found
-    USERADD=$(mbfl_program_found /usr/sbin/useradd) || exit_because_program_not_found
-    USERMOD=$(mbfl_program_found /usr/sbin/usermod) || exit_because_program_not_found
-    CHMOD=$(mbfl_program_found /bin/chmod)          || exit_because_program_not_found
-    if mbfl_wrong_num_args 2 $ARGC
+    if ! mbfl_wrong_num_args 2 $ARGC
     then
-	local SAFE_USERNAME=${ARGV[0]}
-	local UNSAFE_USERNAME=${ARGV[1]}
-	local UNSAFE_HOME="$UNSAFE_HOME_PARENT/$UNSAFE_USERNAME"
-
-	if ! mbfl_string_is_identifier "$SAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	    exit_because_failure
-	fi
-	if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-	    exit_because_failure
-	fi
-
-	# Make user the unsafe home directories parent exists.
-	if ! mbfl_file_is_directory "$UNSAFE_HOME_PARENT"
-	then
-	    mbfl_message_verbose_printf 'creating top directory for unsafe users home: %s\n' "$UNSAFE_HOME_PARENT"
-	    if mbfl_program_exec "$INSTALL" -m 0755 -o root -g root "$UNSAFE_HOME_PARENT"
-	    then
-		mbfl_message_error_printf 'creating unsafe home directories parent: %s' "$UNSAFE_HOME_PARENT"
-		exit_because_failure
-	    fi
-	fi
-
-	# Create the unsafe user.
-	#
-	# We assume  there exists a  group with the same  name of
-	# the safe user.  We create a group with the same name of
-	# the unsafe user.
-	mbfl_message_verbose_printf 'creating unsafe user: %s\n' "$UNSAFE_USERNAME"
-	if ! mbfl_program_exec "$USERADD" \
-	    --base-dir		"$UNSAFE_HOME_PARENT"		\
-	    --home		"$UNSAFE_HOME"			\
-	    --create-home					\
-	    --user-group					\
-	    --groups		$UNSAFE_USERS_GROUP,audio,video	\
-	    --shell		/bin/false			\
-	    "$UNSAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'creating unsafe user: %s' "$UNSAFE_USERNAME"
-	    mbfl_file_remove_directory_silently "$UNSAFE_HOME"
-	    exit_because_failure
-	fi
-
-	# Set permissions for the unsafe user's home directory.
-	CHMOD_FLAGS=--recursive
-	if mbfl_option_verbose
-	then CHMOD_FLAGS="${CHMOD_FLAGS} --verbose"
-	fi
-	if ! mbfl_program_exec "$CHMOD" 2770 "$UNSAFE_HOME" $CHMOD_FLAGS
-	then mbfl_message_error 'setting permissions to unsafe user home'
-	fi
-
-	# Add safe user to the unsafe user's group.
-	if ! mbfl_program_exec "$USERMOD" "$SAFE_USERNAME" \
-	    --append --groups "$UNSAFE_USERNAME"
-	then
-	    mbfl_message_error "adding safe user to unsafe user's group"
-	fi
-
-	# Create  a  "~/.plan"  text  file   in  the  unsafe  user  home
-	# directory.   It is  used by  the program  "finger" to  display
-	# descriptive  informations  about  the user  account;  see  the
-	# manpage of "finger" for details.
-	printf 'Unsafe user account associated to the user "%s".\n' \
-	    "$SAFE_USERNAME" >"$UNSAFE_HOME"/.plan
-    else
 	mbfl_main_print_usage_screen_brief
 	exit_because_wrong_num_args
     fi
+
+    mbfl_local_varref(INSTALL)
+    mbfl_local_varref(USERADD)
+    mbfl_local_varref(USERMOD)
+    mbfl_local_varref(CHMOD)
+    local CHMOD_FLAGS
+    mbfl_program_found_var mbfl_datavar(INSTALL)	/usr/bin/install  || exit $?
+    mbfl_program_found_var mbfl_datavar(USERADD)	/usr/sbin/useradd || exit $?
+    mbfl_program_found_var mbfl_datavar(USERMOD)	/usr/sbin/usermod || exit $?
+    mbfl_program_found_var mbfl_datavar(CHMOD)		/bin/chmod        || exit $?
+
+    mbfl_command_line_argument(SAFE_USERNAME,   0)
+    mbfl_command_line_argument(UNSAFE_USERNAME, 1)
+    local -r UNSAFE_HOME="${UNSAFE_HOME_PARENT}/${UNSAFE_USERNAME}"
+
+    if ! mbfl_string_is_identifier "$SAFE_USERNAME"
+    then
+	mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
+	exit_because_failure
+    fi
+    if ! mbfl_string_is_identifier "$UNSAFE_USERNAME"
+    then
+	mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
+	exit_because_failure
+    fi
+
+    # Make sure the unsafe home directories parent exists.
+    if ! mbfl_file_is_directory "$UNSAFE_HOME_PARENT"
+    then
+	mbfl_message_verbose_printf 'creating top directory for unsafe users home: %s\n' "$UNSAFE_HOME_PARENT"
+	if mbfl_program_exec "$INSTALL" -m 0750 -o root -g mmux-unsafe-usrs -d "$UNSAFE_HOME_PARENT"
+	then
+	    mbfl_message_error_printf 'creating unsafe home directories parent: %s' "$UNSAFE_HOME_PARENT"
+	    exit_because_failure
+	fi
+    fi
+
+    # Create the unsafe user.
+    #
+    # We assume  there exists a  group with the same  name of
+    # the safe user.  We create a group with the same name of
+    # the unsafe user.
+    mbfl_message_verbose_printf 'creating unsafe user: %s\n' "$UNSAFE_USERNAME"
+    if ! mbfl_program_exec "$USERADD" \
+	 --base-dir		"$UNSAFE_HOME_PARENT"		\
+	 --home			"$UNSAFE_HOME"			\
+	 --create-home						\
+	 --user-group						\
+	 --groups		$UNSAFE_USERS_GROUP,audio,video	\
+	 --shell		/bin/false			\
+	 "$UNSAFE_USERNAME"
+    then
+	mbfl_message_error_printf 'creating unsafe user: %s' "$UNSAFE_USERNAME"
+	mbfl_file_remove_directory_silently "$UNSAFE_HOME"
+	exit_because_failure
+    fi
+
+    # Set permissions for the unsafe user's home directory.
+    CHMOD_FLAGS=--recursive
+    if mbfl_option_verbose
+    then CHMOD_FLAGS="${CHMOD_FLAGS} --verbose"
+    fi
+    if ! mbfl_program_exec "$CHMOD" 2770 "$UNSAFE_HOME" $CHMOD_FLAGS
+    then mbfl_message_error 'setting permissions to unsafe user home'
+    fi
+
+    # Add safe user to the unsafe user's group.
+    if ! mbfl_program_exec "$USERMOD" "$SAFE_USERNAME" \
+	 --append --groups "$UNSAFE_USERNAME"
+    then
+	mbfl_message_error "adding safe user to unsafe user's group"
+    fi
+
+    # Create a  "~/.plan" text file in  the unsafe user home  directory.  It is used  by the program
+    # "finger"  to display  descriptive informations  about  the user  account; see  the manpage  of
+    # "finger" for details.
+    printf 'Unsafe user account associated to the user "%s".\n' \
+	   "$SAFE_USERNAME" >"$UNSAFE_HOME"/.plan
 }
 
 #page

@@ -42,8 +42,6 @@
 
 @c ------------------------------------------------------------
 
-@set SAFE_USERS_GROUP           @samp{mmux-safe-usrs}
-@set UNSAFE_USERS_GROUP         @samp{mmux-unsafe-usrs}
 @set MANAGER_SCRIPT             mmux-unsafe-users-manager
 @set MANAGER_SCRIPT_COMMAND     @command{mmux-unsafe-users-manager}
 @set UNSAFE_USERS_DOTFILE       @file{~/.mmux-unsafe-users}
@@ -157,8 +155,30 @@ accounts.  It introduces a security layer to run applications under restricted p
 purpose of partially protect legitimate users from remote attacks.
 
 @item
-This package relies on the program @command{sudo} to allow users creation to the users of the group
-@value{SAFE_USERS_GROUP}; such policy is configured by the file:
+The system administrator is expected to add the groups @code{mmux-safe-usrs} and
+@code{mmux-unsafe-usrs}, for example using the commands:
+
+@example
+/usr/sbin/groupadd --force mmux-safe-usrs
+/usr/sbin/groupadd --force mmux-unsafe-usrs
+@end example
+
+@noindent
+the group @code{mmux-safe-usrs} is for safe users allowed to create unsafe users;
+@code{mmux-unsafe-usrs} is for unsafe users, but safe users belonging to @code{mmux-safe-usrs} must
+also belong to it (to be able to access directories whose group is @code{mmux-unsafe-usrs}).
+
+This package does @strong{not} add users to the groups @code{mmux-safe-usrs} and
+@code{mmux-unsafe-usrs}; it is responsibility of the system administrator to do it, for example with
+the command:
+
+@example
+/usr/sbin/usermod marco --append --groups @code{mmux-safe-usrs},@code{mmux-unsafe-usrs}
+@end example
+
+@item
+This package relies on the program @command{sudo} to allow unsafe users creation to the users of the
+group @code{mmux-safe-usrs}; such policy is configured by the file:
 
 @center @file{/etc/sudoers.d/mmux-unsafe-users-management.conf}
 
@@ -178,25 +198,13 @@ file @file{/etc/sudoers}:
 #includedir /etc/sudoers.d
 @end example
 
-This package does @strong{not} add users to the group @samp{mmux-safe-usrs}, it is responsibility of
-the system administrator to do it.
-
-@item
-The system administrator is expected to add the groups @code{mmux-safe-usrs} and
-@code{mmux-unsafe-usrs}, for example using the commands:
-
-@example
-/usr/sbin/groupadd --force mmux-safe-usrs
-/usr/sbin/groupadd --force mmux-unsafe-usrs
-@end example
-
 @item
 This package's distribution comes with a script @file{meta/slackware/doinst.sh} that can be run to
 create the user groups and adjust the access permissions of the installed files.  It is usable, in
 fact, as Slackware package installation script.
 @end itemize
 
-With this system configuration, users that are members of the group @value{SAFE_USERS_GROUP} can:
+With this system configuration, users that are members of the group @code{mmux-safe-usrs} can:
 add and remove multiple unsafe users accounts associated to a safe user; enable unsafe users to use
 a X Window server running under the safe user's permissions.
 
@@ -230,10 +238,10 @@ unset mmux_xinitrc_script
 @end table
 
 Let's say the user @samp{marco} wants to make use of unsafe user accounts to run applications; the
-system administrator adds it to the group @value{SAFE_USERS_GROUP}, for example with the command:
+system administrator adds it to the group @code{mmux-safe-usrs}, for example with the command:
 
 @example
-/usr/sbin/usermod marco --append --groups @value{SAFE_USERS_GROUP}
+/usr/sbin/usermod marco --append --groups @code{mmux-safe-usrs},@code{mmux-unsafe-usrs}
 @end example
 
 If @samp{marco} wants to create the unsafe users accounts @samp{marco-firefox} and
@@ -395,31 +403,34 @@ line utility @value{MANAGER_SCRIPT_COMMAND}.
 
 
 The distribution comes with a script @file{meta/slackware/doinst.sh} that can be run to create the
-users' group and adjust the access permissions of the installed files.  It is usable, in fact, as
+users' groups and adjust the access permissions of the installed files.  It is usable, in fact, as
 Slackware package installation script.
 
 This package relies on the existence of two user groups:
 
 @table @asis
-@item @value{SAFE_USERS_GROUP}
-It is the group to which all the safe users allowed to use this package should belong.  This group
-can be added automatically by running the script @file{doinst.sh}.  This package does @strong{not}
-add users to this group: it is responsibility of the system administrator to do it.
+@item @code{mmux-safe-usrs}
+It is the group to which all, and only, the safe users allowed to use this package should belong to.
+This group can be added automatically by running the script @file{doinst.sh}.  This package does
+@strong{not} add users to this group: it is responsibility of the system administrator to do it.
 
 By default, the installed @file{sudoers.d} file requires users to belong to the group
-@value{SAFE_USERS_GROUP} to be able to run the script @value{MANAGER_SCRIPT_COMMAND}.
+@code{mmux-safe-usrs} to be able to run the script @value{MANAGER_SCRIPT_COMMAND}.
 
-@item @value{UNSAFE_USERS_GROUP}
-It is the group to which all the unsafe users should belong.  This group can be added automatically
-by running the script @file{doinst.sh}.  This package: automatically adds unsafe users to this group
-at user--creation time; automatically removes unsafe users from this group at user--deletion time.
+@item @code{mmux-unsafe-usrs}
+It is the group to which all the safe and unsafe users should belong to.  This group can be added
+automatically by running the script @file{doinst.sh}.  This package: automatically adds unsafe users
+to this group at user--creation time; automatically removes unsafe users from this group at
+user--deletion time.  This package does @strong{not} add safe users to this group: it is
+responsibility of the system administrator to do it.
 
-This group of unsafe users can be used to configure file systems' quota.
+This group of unsafe users can be used to configure file systems' quota and to restrict access to
+files.
 @end table
 
 All the scripts in this package should be installed with owner @samp{root}, group
-@value{SAFE_USERS_GROUP} and permissions @samp{0750}; after package installation, these permissions
-can be adjusted by running the @file{doinst.sh} script.  We should see something like:
+@code{mmux-safe-usrs} and permissions @samp{0750}; after package installation, these permissions can
+be adjusted by running the @file{doinst.sh} script.  We should see something like:
 
 @example
 $ ls -l /usr/sbin/mmux-unsafe-users-manager
@@ -434,13 +445,11 @@ $ ls -l /usr/sbin/mmux-unsafe-users-manager
 The root directory of the unsafe user's home directory is created with:
 
 @example
-$SUDO /usr/bin/install -m 0755 -o root -g root \
-   /home/unsafe-users
+$SUDO /usr/bin/install -m 0750 -o root -g mmux-unsafe-usrs -d /home/unsafe-users
 @end example
 
-Let's take as example the unsafe user @samp{marco-firefox} associated to
-the safe user @samp{marco}.  Unsafe users accounts are created with the
-command:
+Let's take as example the unsafe user @samp{marco-firefox} associated to the safe user @samp{marco};
+unsafe users accounts are created with the command:
 
 @example
 $SUDO /usr/sbin/useradd \
@@ -454,38 +463,34 @@ $SUDO /usr/sbin/useradd \
 @end example
 
 @noindent
-notice that an unsafe user's account @strong{must not} be part of the
-normal users' groups; rather it should be part of the smallest possible
-number of groups needed to run the desired applications.
+notice that an unsafe user's account @strong{must not} be part of the normal users' groups (like
+@samp{users}); rather it should be part of the smallest possible number of groups needed to run the
+desired applications.
 
-The shell could be either @file{/bin/false} or @file{/sbin/nologin}; we
-opt for the former because it is more descriptive of a user account
-never available for log in (@file{/sbin/nologin} is more for temporarily
-disabled accounts).
+The shell could be either @file{/bin/false} or @file{/sbin/nologin}; we opt for the former because
+it is more descriptive of a user account never available for log in (@file{/sbin/nologin} is more
+for temporarily disabled accounts).
 
-The access permissions of the unsafe user's home directory are modified
-as follows:
+The access permissions of the unsafe user's home directory are modified as follows:
 
 @example
-$SUDO /bin/chmod 2770 \
-   /home/unsafe-users/marco-firefox
+$SUDO /bin/chmod 2770 /home/unsafe-users/marco-firefox
 @end example
 
 @noindent
-the directory is setgid, so all the files created in it are
-automatically set to the group of the unsafe user.
+the directory is setgid, so all the files created in it are automatically set to the group of the
+unsafe user.
 
 The safe user is added to the group of the unsafe user:
 
 @example
-$SUDO /usr/sbin/usermod marco \
-   --append --groups marco-firefox
+$SUDO /usr/sbin/usermod marco --append --groups marco-firefox
 @end example
 
 @noindent
-this way the safe user can access the files in the home directory of the
-unsafe user.@footnote{We have to remember that this group addition will
-become effective after the safe user has logged out and logged back in.}
+this way the safe user can access the files in the home directory of the unsafe user.@footnote{We
+have to remember that this group addition will become effective after the safe user has logged out
+and logged back in.}
 
 @c page
 @node model deletion
