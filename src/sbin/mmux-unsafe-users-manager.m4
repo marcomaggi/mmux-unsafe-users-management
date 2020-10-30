@@ -1,8 +1,7 @@
-#!/bin/bash
 #
 # Part of: MMUX Unsafe Users Management
 # Contents: unsafe users management script
-# Date: Sat Oct 11, 2014
+# Date: Oct 11, 2014
 #
 # Abstract
 #
@@ -10,21 +9,16 @@
 #
 # Copyright (C) 2014, 2018, 2020 Marco Maggi <mrc.mgg@gmail.com>
 #
-# This  program  is free  software:  you  can redistribute  it
-# and/or modify it  under the terms of the  GNU General Public
-# License as published by the Free Software Foundation, either
-# version  3 of  the License,  or (at  your option)  any later
-# version.
+# This program is free software: you can redistribute it and/or modify it under the terms of the GNU
+# General Public  License as  published by  the Free Software  Foundation, either  version 3  of the
+# License, or (at your option) any later version.
 #
-# This  program is  distributed in  the hope  that it  will be
-# useful, but  WITHOUT ANY WARRANTY; without  even the implied
-# warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
-# PURPOSE.   See  the  GNU  General Public  License  for  more
-# details.
+# This program is distributed in the hope that  it will be useful, but WITHOUT ANY WARRANTY; without
+# even the  implied warranty of MERCHANTABILITY  or FITNESS FOR  A PARTICULAR PURPOSE.  See  the GNU
+# General Public License for more details.
 #
-# You should  have received a  copy of the GNU  General Public
-# License   along   with    this   program.    If   not,   see
-# <http://www.gnu.org/licenses/>.
+# You should  have received a copy  of the GNU General  Public License along with  this program.  If
+# not, see <http://www.gnu.org/licenses/>.
 #
 
 #page
@@ -38,6 +32,11 @@ declare -r script_LICENSE=GPL
 declare script_USAGE="usage: ${script_PROGNAME} [action] [options]"
 declare script_DESCRIPTION='Unsafe users management operations.'
 declare script_EXAMPLES=
+
+declare -r script_REQUIRED_MBFL_VERSION=v3.0.0-devel.4
+declare -r COMPLETIONS_SCRIPT_NAMESPACE='p-mmux-unsafe-users-manager'
+
+### ------------------------------------------------------------------------
 
 declare -r SCRIPT_ARGV0="$0"
 declare -r UNSAFE_HOME_PARENT=/home/unsafe-users
@@ -55,30 +54,7 @@ declare -r UNSAFE_USERS_GROUP=mmux-unsafe-usrs
 #page
 #### library loading
 
-mbfl_INTERACTIVE=no
-mbfl_LOADED=no
-mbfl_HARDCODED=
-mbfl_INSTALLED=$(mbfl-config) &>/dev/null
-for item in "$MBFL_LIBRARY" "$mbfl_HARDCODED" "$mbfl_INSTALLED"
-do
-    if test -n "$item" -a -f "$item" -a -r "$item"
-    then
-        if ! source "$item" &>/dev/null
-	then
-            printf '%s error: loading MBFL file "%s"\n' \
-                "$script_PROGNAME" "$item" >&2
-            exit 2
-        fi
-	break
-    fi
-done
-unset -v item
-if test "$mbfl_LOADED" != yes
-then
-    printf '%s error: incorrect evaluation of MBFL\n' \
-        "$script_PROGNAME" >&2
-    exit 2
-fi
+mbfl_library_loader
 
 #page
 #### program declarations
@@ -103,6 +79,12 @@ mbfl_declare_program /usr/sbin/groupmod
 #page
 #### script actions
 
+mbfl_declare_action_set HELP
+mbfl_declare_action HELP	HELP_USAGE	NONE		usage		'Print the help screen and exit.'
+mbfl_declare_action HELP	HELP_PRINT_COMPLETIONS_SCRIPT NONE print-completions-script 'Print the completions script for this program.'
+
+## --------------------------------------------------------------------
+
 mbfl_declare_action_set MAIN
 mbfl_declare_action MAIN ADD		NONE add		'Add an unsafe user.'
 mbfl_declare_action MAIN DEL		NONE del		'Delete an unsafe user.'
@@ -110,45 +92,16 @@ mbfl_declare_action MAIN ENABLE_X	NONE enable-x		'Enable unsafe users running X 
 mbfl_declare_action MAIN DISABLE_X	NONE disable-x		'Disable unsafe users running X applications in safe user X server.'
 mbfl_declare_action MAIN SUDO_ADD	NONE sudo-add		'Internal action.'
 mbfl_declare_action MAIN SUDO_DEL	NONE sudo-del		'Internal action.'
-mbfl_declare_action MAIN HELP		NONE help		'Print help screen and exit.'
+mbfl_declare_action MAIN HELP		HELP help		'Help the user of this script.'
 
-## --------------------------------------------------------------------
+#page
+#### adding unsafe users
 
 function script_before_parsing_options_ADD () {
     script_USAGE="usage: ${script_PROGNAME} add UNSAFE-USERNAME --safe-user=SAFE-USERNAME [options]"
     script_DESCRIPTION='Add an unsafe user.'
     mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
 }
-function script_before_parsing_options_DEL () {
-    script_USAGE="usage: ${script_PROGNAME} del UNSAFE-USERNAME --safe-user=SAFE-USERNAME [options]"
-    script_DESCRIPTION='Remove an unsafe user.'
-    mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
-}
-function script_before_parsing_options_ENABLE_X () {
-    script_USAGE="usage: ${script_PROGNAME} enable-x [options]"
-    script_DESCRIPTION='Enable unsafe users running X applications in safe user X server.'
-    mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
-}
-function script_before_parsing_options_DISABLE_X () {
-    script_USAGE="usage: ${script_PROGNAME} disable-x [options]"
-    script_DESCRIPTION='Disable unsafe users running X applications in safe user X server.'
-    mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
-}
-
-### --------------------------------------------------------------------
-
-function script_before_parsing_options_SUDO_ADD () {
-    script_USAGE="usage: ${script_PROGNAME} sudo-add SAFE-USERNAME UNSAFE-USERNAME [options]"
-    script_DESCRIPTION='Internal action.'
-}
-function script_before_parsing_options_SUDO_DEL () {
-    script_USAGE="usage: ${script_PROGNAME} sudo-del SAFE-USERNAME UNSAFE-USERNAME [options]"
-    script_DESCRIPTION='Internal action.'
-}
-
-#page
-#### adding unsafe users
-
 function script_action_ADD () {
     local FLAGS
     if mbfl_wrong_num_args 1 $ARGC
@@ -183,6 +136,13 @@ function script_action_ADD () {
 	mbfl_main_print_usage_screen_brief
 	exit_because_wrong_num_args
     fi
+}
+
+### ------------------------------------------------------------------------
+
+function script_before_parsing_options_SUDO_ADD () {
+    script_USAGE="usage: ${script_PROGNAME} sudo-add SAFE-USERNAME UNSAFE-USERNAME [options]"
+    script_DESCRIPTION='Internal action.'
 }
 function script_action_SUDO_ADD () {
     local INSTALL USERADD USERMOD CHMOD CHMOD_FLAGS
@@ -269,6 +229,11 @@ function script_action_SUDO_ADD () {
 #page
 #### deleting unsafe users
 
+function script_before_parsing_options_DEL () {
+    script_USAGE="usage: ${script_PROGNAME} del UNSAFE-USERNAME --safe-user=SAFE-USERNAME [options]"
+    script_DESCRIPTION='Remove an unsafe user.'
+    mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
+}
 function script_action_DEL () {
     local FLAGS
     if mbfl_wrong_num_args 1 $ARGC
@@ -303,6 +268,13 @@ function script_action_DEL () {
 	mbfl_main_print_usage_screen_brief
 	exit_because_wrong_num_args
     fi
+}
+
+### ------------------------------------------------------------------------
+
+function script_before_parsing_options_SUDO_DEL () {
+    script_USAGE="usage: ${script_PROGNAME} sudo-del SAFE-USERNAME UNSAFE-USERNAME [options]"
+    script_DESCRIPTION='Internal action.'
 }
 function script_action_SUDO_DEL () {
     local USERDEL GROUPDEL
@@ -355,6 +327,11 @@ function script_action_SUDO_DEL () {
 #page
 #### enabling/disabling access to X host
 
+function script_before_parsing_options_ENABLE_X () {
+    script_USAGE="usage: ${script_PROGNAME} enable-x [options]"
+    script_DESCRIPTION='Enable unsafe users running X applications in safe user X server.'
+    mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
+}
 function script_action_ENABLE_X () {
     local XHOST UNSAFE_USERNAME
     XHOST=$(mbfl_program_found /usr/bin/xhost)	|| exit_because_program_not_found
@@ -413,6 +390,13 @@ function script_action_ENABLE_X () {
     fi
 }
 
+### ------------------------------------------------------------------------
+
+function script_before_parsing_options_DISABLE_X () {
+    script_USAGE="usage: ${script_PROGNAME} disable-x [options]"
+    script_DESCRIPTION='Disable unsafe users running X applications in safe user X server.'
+    mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
+}
 function script_action_DISABLE_X () {
     local XHOST UNSAFE_USERNAME
     XHOST=$(mbfl_program_found /usr/bin/xhost)	|| exit_because_program_not_found
@@ -465,18 +449,62 @@ function script_action_DISABLE_X () {
 }
 
 #page
+#### help actions
+
+function script_before_parsing_options_HELP () {
+    script_USAGE="usage: ${script_PROGNAME} help [action] [options]"
+    script_DESCRIPTION='Help the user of this program.'
+}
+function script_action_HELP () {
+    # By faking the  selection of the MAIN action: we  cause "mbfl_main_print_usage_screen_brief" to
+    # print the main usage screen.
+    mbfl_actions_fake_action_set MAIN
+    mbfl_main_print_usage_screen_brief
+}
+
+### ------------------------------------------------------------------------
+
+function script_before_parsing_options_HELP_USAGE () {
+    script_USAGE="usage: ${script_PROGNAME} help usage [options]"
+    script_DESCRIPTION='Print the usage screen and exit.'
+}
+function script_action_HELP_USAGE () {
+    if mbfl_wrong_num_args 0 $ARGC
+    then
+	# By faking the selection of  the MAIN action: we cause "mbfl_main_print_usage_screen_brief"
+	# to print the main usage screen.
+	mbfl_actions_fake_action_set MAIN
+	mbfl_main_print_usage_screen_brief
+    else
+	mbfl_main_print_usage_screen_brief
+	exit_because_wrong_num_args
+    fi
+}
+
+## --------------------------------------------------------------------
+
+function script_before_parsing_options_HELP_PRINT_COMPLETIONS_SCRIPT () {
+    script_PRINT_COMPLETIONS="usage: ${script_PROGNAME} help print-completions-script [options]"
+    script_DESCRIPTION='Print the command-line completions script and exit.'
+}
+function script_action_HELP_PRINT_COMPLETIONS_SCRIPT () {
+    if mbfl_wrong_num_args 0 $ARGC
+    then mbfl_actions_completion_print_script "$COMPLETIONS_SCRIPT_NAMESPACE" "$script_PROGNAME"
+    else
+	mbfl_main_print_usage_screen_brief
+	exit_because_wrong_num_args
+    fi
+}
+
+#page
 #### let's go
 
 function main () {
-    mbfl_main_print_usage_screen_brief
-}
-function script_action_HELP () {
-    mbfl_actions_fake_action_set MAIN
     mbfl_main_print_usage_screen_brief
 }
 mbfl_main
 
 ### end of file
 # Local Variables:
-# mode: sh-mode
+# mode: sh
 # End:

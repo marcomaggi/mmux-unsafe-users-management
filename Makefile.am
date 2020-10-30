@@ -51,30 +51,12 @@ install-html-local:
 		"$(DESTDIR)$(htmldir)/mmux-unsafe-users-management.html/"
 
 
-#### sudoers files
-
-sudoersdir		= $(sysconfdir)/sudoers.d
-dist_sudoers_DATA	= src/etc/sudoers.d/mmux-unsafe-users-management.conf
-
-
-#### command line completions
-
-completionsdir		= $(sysconfdir)/bash_completion.d
-dist_completions_SCRIPTS= src/etc/bash_completion.d/mmux-unsafe-users-manager.bash
-
-
-#### X11 interface
-
-mmuxX11dir		= $(sysconfdir)/mmux/xinitrc.d
-dist_mmuxX11_SCRIPTS	= src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
-
-
 #### scripts
 
 EXTRA_DIST			+= 			\
 	src/sbin/mmux-unsafe-users-manager.m4
 
-dist_sbin_SCRIPTS		= 			\
+sbin_SCRIPTS			= 			\
 	src/sbin/mmux-unsafe-users-manager
 
 CLEANFILES			+=	 		\
@@ -92,5 +74,37 @@ src/sbin/mmux-unsafe-users-manager :			\
 		src/sbin/mmux-unsafe-users-manager.m4	\
 		$(sbinscripts_PREREQUISITES)
 	$(MBFLPP) $(MBFLPP_FLAGS) <$< >$@
+
+
+#### sudoers files
+
+sudoersdir		= $(sysconfdir)/sudoers.d
+dist_sudoers_DATA	= src/etc/sudoers.d/mmux-unsafe-users-management.conf
+
+
+#### command line completions
+
+completionsdir			= $(sysconfdir)/bash_completion.d
+completions_SCRIPTS		= \
+	src/etc/bash_completion.d/mmux-unsafe-users-manager.bash
+
+CLEANFILES			+= \
+	src/etc/bash_completion.d/mmux-unsafe-users-manager.bash
+
+completions_PREREQUISITES	= \
+	src/etc/bash_completion.d/$(am__dirstamp)
+
+src/etc/bash_completion.d/$(am__dirstamp):
+	@$(MKDIR_P) src/etc/bash_completion.d
+	@: > src/etc/bash_completion.d/$(am__dirstamp)
+
+src/etc/bash_completion.d/mmux-unsafe-users-manager.bash: src/sbin/mmux-unsafe-users-manager $(completions_PREREQUISITES)
+	$(BASH_PROGRAM) src/sbin/mmux-unsafe-users-manager help print-completions-script >$(@)
+
+
+#### X11 interface
+
+mmuxX11dir		= $(sysconfdir)/mmux/xinitrc.d
+dist_mmuxX11_SCRIPTS	= src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
 
 ### end of file
