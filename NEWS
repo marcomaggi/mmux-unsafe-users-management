@@ -1,0 +1,21 @@
+-*- coding: utf-8-unix -*-
+
+		Changes to MMUX Unsafe Users Management
+		=======================================
+
+
+Notes for revision v0.4.0-devel.0
+---------------------------------
+
+* Updated to MBFL version v3.0.0-devel.4.
+
+* Added automatic generation of command line completion script.
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 72
+# paragraph-start: "*"
+# ispell-local-dictionary: "en_GB-ise-w_accents"
+# End:
