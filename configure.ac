@@ -2,7 +2,7 @@ dnl @configure_input@
 dnl
 
 AC_PREREQ([2.69])
-MMUX_PKG_VERSIONS([0],[4],[0],[devel.0],[noarch])
+MMUX_PKG_VERSIONS([0],[4],[0],[devel.1],[noarch])
 AC_INIT([MMUX Unsafe Users Management],MMUX_PACKAGE_VERSION,[mrc.mgg@gmail.com],
    [mmux-unsafe-users-management],
    [http://github.com/marcomaggi/mmux-unsafe-users-management/])
