@@ -218,6 +218,17 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{RE2}
 @end macro
 
+@ifnothtml
+@macro mbfl{}
+@acronym{MBFL}
+@end macro
+@end ifnothtml
+@ifhtml
+@macro mbfl{}
+@acronym{mbfl}
+@end macro
+@end ifhtml
+
 @c ------------------------------------------------------------
 @c Network related acronyms.
 @c ------------------------------------------------------------

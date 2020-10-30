@@ -11,7 +11,7 @@ Topics
   3. Install
   4. Usage
   A. Credits
-  B. Bugs
+  B. Bugs, vulnerabilities and contributions
   C. Resources
 
 
@@ -19,8 +19,9 @@ Topics
 ---------------
 
 This package proposes a model  to manage unsafe user profiles associated
-to safe users  account on Slackware GNU+Linux systems.   It depends upon
-the Marco's Bash Functions Library (MBFL).
+to safe users accounts on  Slackware GNU+Linux systems.  It depends upon
+the   Marco's  Bash   Functions   Library  (MBFL),   at  least   version
+v3.0.0-devel.4.
 
   This package  is meant to  be used on  computers for personal  use, on
 which only trusted users have  accounts.  It introduces a security layer
@@ -101,9 +102,15 @@ to really do it:
 4. Usage
 --------
 
-Read the  documentation.  This  package relies on  "sudo" to  allow user
-accounts creation and  file system mounting and  unmounting; such policy
-is configured by the file:
+Read the documentation generated from  the Texinfo sources.  The package
+installs the documentation  in Info format; we can  generate and install
+documentation in HTML format by running:
+
+   $ make html
+   $ make install-html
+
+  This package  relies on "sudo"  to allow user accounts  creation; such
+policy is configured by the file:
 
    /etc/sudoers.d/mmux-unsafe-users-management.conf
 
@@ -129,11 +136,13 @@ The  stuff was  written by  Marco Maggi.   If this  package exists  it's
 because of the great GNU software tools that he uses all the time.
 
 
-B. Bugs
--------
+B. Bugs, vulnerabilities and contributions
+------------------------------------------
 
-Bug reports are appreciated, register them at Github's Issue Tracker for
-this project.
+Bug  and vulnerability  reports are  appreciated, all  the vulnerability
+reports  are  public; register  them  using  the  Issue Tracker  at  the
+project's GitHub  site.  For  contributions and  patches please  use the
+Pull Requests feature at the project's GitHub site.
 
 
 C. Resources

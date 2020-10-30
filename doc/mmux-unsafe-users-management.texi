@@ -48,6 +48,8 @@
 @set MANAGER_SCRIPT_COMMAND     @command{mmux-unsafe-users-manager}
 @set UNSAFE_USERS_DOTFILE       @file{~/.mmux-unsafe-users}
 
+@set REQUIRED_MBFL_VERSION      v3.0.0-devel.4
+
 @c page
 @c ------------------------------------------------------------
 @c Copyright notice.
@@ -55,8 +57,11 @@
 
 @copying
 This document describes version @version{} of @value{PACKAGE}, a distribution of @gnu{} Bash
-scripts; it provides utilities to handle unsafe user accounts.  The package is distributed under the
-terms of the @gnu{} General Public License (@gpl{}).
+scripts; it proposes a model to manage unsafe user profiles associated to safe user accounts on
+Slackware @gnu{}+Linux systems.  This package depends upon the external package Marco's Bash
+Functions Library (@mbfl{}), at least version @value{REQUIRED_MBFL_VERSION}.
+
+The package is distributed under the terms of the @gnu{} General Public License (@gpl{}).
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
@@ -134,8 +139,9 @@ Indexes
 
 This document describes version @version{} of @value{PACKAGE}, a distribution of @gnu{} Bash
 scripts; it proposes a model to manage unsafe user profiles associated to safe user accounts on
-Slackware GNU+Linux systems.  It depends upon the Marco's Bash Functions Library (@acronym{MBFL}).
-To use this package, the following system requirements must be satisfied:
+Slackware @gnu{}+Linux systems.  This package depends upon the external package Marco's Bash
+Functions Library (@mbfl{}), at least version @value{REQUIRED_MBFL_VERSION}.  To use this package,
+the following system requirements must be satisfied:
 
 @itemize
 @item
