@@ -362,7 +362,7 @@ function script_action_ENABLE_X () {
 	exit_because_failure
     fi
 
-    local UNSAFE_USERS_LIST_FILE=~${SAFE_USERNAME}/.mmux-unsafe-users
+    eval local -r UNSAFE_USERS_LIST_FILE=~${SAFE_USERNAME}/.mmux-unsafe-users
     if ! mbfl_file_is_file "$UNSAFE_USERS_LIST_FILE"
     then
 	mbfl_message_error_printf 'missing list of unsafe users file: %s\n' "$UNSAFE_USERS_LIST_FILE"
@@ -422,7 +422,7 @@ function script_action_DISABLE_X () {
 	exit_because_failure
     fi
 
-    local UNSAFE_USERS_LIST_FILE=~${SAFE_USERNAME}/.mmux-unsafe-users
+    eval local -r UNSAFE_USERS_LIST_FILE=~${SAFE_USERNAME}/.mmux-unsafe-users
     if ! mbfl_file_is_file "$UNSAFE_USERS_LIST_FILE"
     then
 	mbfl_message_error_printf 'missing list of unsafe users file: %s\n' "$UNSAFE_USERS_LIST_FILE"
