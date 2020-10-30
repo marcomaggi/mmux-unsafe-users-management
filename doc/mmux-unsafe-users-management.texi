@@ -558,6 +558,10 @@ the latest version of this package can be downloaded from:
 
 @center @value{GITHUB_URL}
 
+Marco's Bash Functions Library (@mbfl{}) can be found here:
+
+@center @url{http://marcomaggi.github.com/mbfl.html}
+
 @c page
 @node concept index
 @appendix An entry for each concept
