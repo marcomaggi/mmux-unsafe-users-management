@@ -378,8 +378,13 @@ Options:
 
 @table @code
 @item -S@var{SAFE-USERNAME}
-@item --safe-user=@var{SAFE-USERNAME}
+@itemx --safe-user=@var{SAFE-USERNAME}
 Select the safe user associated to the unsafe user.
+
+@item -H@var{UNSAFE_HOME_PARENT}
+@itemx --unsafe-home-parent=@var{UNSAFE_HOME_PARENT}
+Available for the action @code{add}.  Select a parent directory for the unsafe users home
+directories.  Defaults to @file{/home/unsafe-users}.
 @end table
 
 @c page
