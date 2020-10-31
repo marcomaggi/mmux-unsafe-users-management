@@ -117,6 +117,7 @@ included in the section entitled ``@gnu{} Free Documentation License''.
 * using::                       How to use the package.
 * tips::                        Useful stuff to know.
 * script::                      The command line utility that does it all.
+* normalisation::               Directories normalisation.
 * model::                       How unsafe users are associated to safe ones.
 
 Appendices
@@ -370,6 +371,10 @@ Enable unsafe users running X applications in a safe user X server.
 @item disable-x [options]
 Disable unsafe users running X applications in a safe user X server.
 
+@item normalise [options]
+Scan the home directories of the unsafe users associated to a user and fix the files ownership and
+access permissions.  @ref{normalisation, Directories normalisation}.
+
 @item help [options]
 Help the user of this script.
 @end table
@@ -386,6 +391,20 @@ Select the safe user associated to the unsafe user.
 Available for the action @code{add}.  Select a parent directory for the unsafe users home
 directories.  Defaults to @file{/home/unsafe-users}.
 @end table
+
+@c page
+@node normalisation
+@chapter Directories normalisation
+
+
+Using the action @code{normalise} of the script, we can scan the home directories of all the unsafe
+users associated to a specific safe user and fix files ownership and access permissions.  The
+normalisation operation works as follows:
+
+@itemize
+@item
+
+@end itemize
 
 @c page
 @node model

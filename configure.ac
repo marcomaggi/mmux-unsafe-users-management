@@ -41,7 +41,8 @@ MBFL_SETUP
 
 AC_CONFIG_FILES([Makefile]
   [meta/slackware/doinst.sh]
-  [src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh])
+  [src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh]
+  [src/sbin/mmux-unsafe-users-manager.m4])
 MMUX_OUTPUT
 AC_OUTPUT
 

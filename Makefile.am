@@ -53,9 +53,6 @@ install-html-local:
 
 #### scripts
 
-EXTRA_DIST			+= 			\
-	src/sbin/mmux-unsafe-users-manager.m4
-
 sbin_SCRIPTS			= 			\
 	src/sbin/mmux-unsafe-users-manager
 
@@ -99,9 +96,7 @@ src/etc/sudoers.d/$(am__dirstamp):
 src/etc/sudoers.d/mmux-unsafe-users-management.conf:				\
 		src/etc/sudoers.d/mmux-unsafe-users-management.conf.sed		\
 		$(sudoers_PREREQUISITES)
-	sed --expression "s%__SBINDIR__%$(sbindir)%g" \
-            --expression "s%//%/%g" \
-	    <$(<) >$@
+	sed --expression "s%__SBINDIR__%$(sbindir)%g" --expression "s%//%/%g" <$(<) >$@
 
 
 #### command line completions

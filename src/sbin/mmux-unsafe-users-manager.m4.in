@@ -38,6 +38,11 @@ declare -r COMPLETIONS_SCRIPT_NAMESPACE='p-mmux-unsafe-users-manager'
 
 ### ------------------------------------------------------------------------
 
+declare -r prefix="@prefix@"
+declare -r exec_prefix="@exec_prefix@"
+declare -r sbindir="@sbindir@"
+declare -r sysconfdir="@sysconfdir@"
+
 declare -r SCRIPT_ARGV0="$0"
 declare -r DEFAULT_UNSAFE_HOME_PARENT=/home/unsafe-users
 
@@ -50,6 +55,8 @@ declare -r SAFE_USERS_GROUP=mmux-safe-usrs
 #
 #                             0123456789012345
 declare -r UNSAFE_USERS_GROUP=mmux-unsafe-usrs
+
+declare -r SUDOERS_CONF_FILE="$sysconfdir"/sudoers.d/mmux-unsafe-users-management.conf
 
 #page
 #### library loading
@@ -64,10 +71,13 @@ mbfl_dialog_enable_programs
 mbfl_program_enable_sudo
 mbfl_file_enable_remove
 
-mbfl_declare_program /bin/grep
-mbfl_declare_program /bin/chmod
-mbfl_declare_program /usr/bin/install
-mbfl_declare_program /usr/bin/xhost
+mbfl_declare_program find
+mbfl_declare_program grep
+mbfl_declare_program chmod
+mbfl_declare_program chown
+mbfl_declare_program chgrp
+mbfl_declare_program install
+mbfl_declare_program xhost
 
 mbfl_declare_program /usr/sbin/useradd
 mbfl_declare_program /usr/sbin/userdel
@@ -90,8 +100,12 @@ mbfl_declare_action MAIN ADD		NONE add		'Add an unsafe user.'
 mbfl_declare_action MAIN DEL		NONE del		'Delete an unsafe user.'
 mbfl_declare_action MAIN ENABLE_X	NONE enable-x		'Enable unsafe users running X applications in safe user X server.'
 mbfl_declare_action MAIN DISABLE_X	NONE disable-x		'Disable unsafe users running X applications in safe user X server.'
+mbfl_declare_action MAIN SETUP		NONE setup		'Create the required groups and directories.'
+mbfl_declare_action MAIN NORMALISE	NONE normalise		'Normalise the home directories of unsafe users.'
 mbfl_declare_action MAIN SUDO_ADD	NONE sudo-add		'Internal action.'
 mbfl_declare_action MAIN SUDO_DEL	NONE sudo-del		'Internal action.'
+mbfl_declare_action MAIN SUDO_SETUP	NONE sudo-setup		'Internal action.'
+mbfl_declare_action MAIN SUDO_NORMALISE	NONE sudo-normalise	'Internal action.'
 mbfl_declare_action MAIN HELP		HELP help		'Help the user of this script.'
 
 #page
@@ -154,10 +168,10 @@ function script_action_SUDO_ADD () {
     mbfl_local_varref(USERMOD)
     mbfl_local_varref(CHMOD)
     local CHMOD_FLAGS
-    mbfl_program_found_var mbfl_datavar(INSTALL)	/usr/bin/install  || exit $?
+    mbfl_program_found_var mbfl_datavar(INSTALL)	install  || exit $?
     mbfl_program_found_var mbfl_datavar(USERADD)	/usr/sbin/useradd || exit $?
     mbfl_program_found_var mbfl_datavar(USERMOD)	/usr/sbin/usermod || exit $?
-    mbfl_program_found_var mbfl_datavar(CHMOD)		/bin/chmod        || exit $?
+    mbfl_program_found_var mbfl_datavar(CHMOD)		chmod        || exit $?
 
     mbfl_command_line_argument(SAFE_USERNAME,      0)
     mbfl_command_line_argument(UNSAFE_USERNAME,    1)
@@ -340,7 +354,7 @@ function script_action_ENABLE_X () {
     fi
 
     mbfl_local_varref(XHOST)
-    mbfl_program_found_var mbfl_datavar(XHOST)	/usr/bin/xhost || exit $?
+    mbfl_program_found_var mbfl_datavar(XHOST)	xhost || exit $?
 
     mbfl_message_verbose_printf 'acquire safe username\n'
     mbfl_local_varref(SAFE_USERNAME, "$script_option_SAFE_USERNAME")
@@ -407,7 +421,7 @@ function script_action_DISABLE_X () {
     fi
 
     mbfl_local_varref(XHOST)
-    mbfl_program_found_var mbfl_datavar(XHOST)	/usr/bin/xhost || exit $?
+    mbfl_program_found_var mbfl_datavar(XHOST)	xhost || exit $?
 
     mbfl_message_verbose_printf 'acquire safe username\n'
     mbfl_local_varref(SAFE_USERNAME, "$script_option_SAFE_USERNAME")
@@ -448,6 +462,274 @@ function script_action_DISABLE_X () {
 	    mbfl_message_error 'enabling unsafe user running X applications'
 	    exit_because_failure
 	fi
+    done <"$UNSAFE_USERS_LIST_FILE"
+}
+
+#page
+#### system setup
+
+function script_before_parsing_options_SETUP () {
+    script_USAGE="usage: ${script_PROGNAME} setup [options]"
+    script_DESCRIPTION='Create the required groups and directories.'
+    mbfl_declare_option UNSAFE_HOME_PARENT "$DEFAULT_UNSAFE_HOME_PARENT" \
+			H unsafe-home-parent witharg 'Select the parent of the home directory for unsafe users.'
+}
+function script_action_SETUP () {
+    if ! mbfl_wrong_num_args 0 $ARGC
+    then
+	mbfl_main_print_usage_screen_brief
+	exit_because_wrong_num_args
+    fi
+
+    mbfl_local_varref(SUBSCRIPT_FLAGS)
+
+    mbfl_getopts_gather_mbfl_options_var mbfl_datavar(SUBSCRIPT_FLAGS)
+    mbfl_program_declare_sudo_user root
+    if mbfl_program_exec "$SCRIPT_ARGV0" sudo-setup "$script_option_UNSAFE_HOME_PARENT" $SUBSCRIPT_FLAGS
+    then exit_success
+    else
+    	mbfl_message_error 'performing system setup'
+    	exit_because_failure
+    fi
+}
+
+### ------------------------------------------------------------------------
+
+function script_before_parsing_options_SUDO_SETUP () {
+    script_USAGE="usage: ${script_PROGNAME} sudo-setup UNSAFE_HOME_PARENT [options]"
+    script_DESCRIPTION='Internal action.'
+}
+function script_action_SUDO_SETUP () {
+    if ! mbfl_wrong_num_args 1 $ARGC
+    then
+	mbfl_main_print_usage_screen_brief
+	exit_because_wrong_num_args
+    fi
+
+    mbfl_command_line_argument(UNSAFE_HOME_PARENT, 0)
+
+    mbfl_local_varref(GROUPADD)
+    mbfl_local_varref(INSTALL)
+    mbfl_program_found_var mbfl_datavar(GROUPADD) /usr/sbin/groupadd || exit $?
+    mbfl_program_found_var mbfl_datavar(INSTALL)  install            || exit $?
+
+    ## ------------------------------------------------------------
+
+    mbfl_message_verbose_printf 'creating safe users groups: "%s"' "$SAFE_USERS_GROUP"
+    if ! mbfl_program_exec "$GROUPADD" --force "$SAFE_USERS_GROUP"
+    then
+	mbfl_message_error_printf 'creating safe users groups: "%s"' "$SAFE_USERS_GROUP"
+	exit_because_failure
+    fi
+
+    mbfl_message_verbose_printf 'creating unsafe users groups: "%s"' "$UNSAFE_USERS_GROUP"
+    if ! mbfl_program_exec "$GROUPADD" --force "$UNSAFE_USERS_GROUP"
+    then
+	mbfl_message_error_printf 'creating unsafe users groups: "%s"' "$UNSAFE_USERS_GROUP"
+	exit_because_failure
+    fi
+
+    ## ------------------------------------------------------------
+
+    if ! mbfl_file_is_directory "$UNSAFE_HOME_PARENT"
+    then
+	mbfl_message_verbose_printf 'creating top directory for unsafe users home: %s\n' "$UNSAFE_HOME_PARENT"
+
+	local INSTALL_FLAGS'--mode=0750 --owner=root --group=mmux-unsafe-usrs --directory'
+
+	if mbfl_option_verbose_program
+	then INSTALL_FLAGS+=' --verbose'
+	fi
+
+	mbfl_program_declare_sudo_user root
+	if mbfl_program_exec "$INSTALL" $INSTALL_FLAGS '--' "$UNSAFE_HOME_PARENT"
+	then
+	    mbfl_message_error_printf 'creating unsafe home directories parent: %s' "$UNSAFE_HOME_PARENT"
+	    exit_because_failure
+	fi
+    else
+	mbfl_program_declare_sudo_user root
+	if ! mbfl_file_set_permissions 0750 "$UNSAFE_HOME_PARENT"
+	then
+	    mbfl_message_error_printf 'setting permissions to 0750 for home directories parent: %s' "$UNSAFE_HOME_PARENT"
+	    exit_because_failure
+	fi
+
+	mbfl_program_declare_sudo_user root
+	if ! mbfl_file_set_owner root "$UNSAFE_HOME_PARENT"
+	then
+	    mbfl_message_error_printf 'setting owner to "root" for home directories parent: %s' "$UNSAFE_HOME_PARENT"
+	    exit_because_failure
+	fi
+
+	mbfl_program_declare_sudo_user root
+	if ! mbfl_file_set_group mmux-unsafe-usrs "$UNSAFE_HOME_PARENT"
+	then
+	    mbfl_message_error_printf 'setting group to "mmux-unsafe-usrs" for home directories parent: %s' "$UNSAFE_HOME_PARENT"
+	    exit_because_failure
+	fi
+    fi
+
+    ## ------------------------------------------------------------
+
+    if mbfl_file_is_file "$SUDOERS_CONF_FILE"
+    then
+	mbfl_message_verbose_printf 'setting to 0400 permissions of sudoers config file: "%s"' "$SUDOERS_CONF_FILE"
+	mbfl_program_declare_sudo_user root
+	if ! mbfl_file_set_permissions 0400 "$SUDOERS_CONF_FILE"
+	then
+	    mbfl_message_error_printf 'setting to 0400 permissions of sudoers config file: "%s"' "$SUDOERS_CONF_FILE"
+	    exit_because_failure
+	fi
+
+	mbfl_message_verbose_printf 'setting owner to "root" for sudoers config file: %s' "$SUDOERS_CONF_FILE"
+	mbfl_program_declare_sudo_user root
+	if ! mbfl_file_set_owner root "$SUDOERS_CONF_FILE"
+	then
+	    mbfl_message_error_printf 'setting owner to "root" for sudoers config file: %s' "$SUDOERS_CONF_FILE"
+	    exit_because_failure
+	fi
+
+	mbfl_message_verbose_printf 'setting group to "root" for sudoers config file: %s' "$SUDOERS_CONF_FILE"
+	mbfl_program_declare_sudo_user root
+	if ! mbfl_file_set_group root "$SUDOERS_CONF_FILE"
+	then
+	    mbfl_message_error_printf 'setting group to "root" for sudoers config file: %s' "$SUDOERS_CONF_FILE"
+	    exit_because_failure
+	fi
+    else mbfl_message_error_printf 'unexistent sudoers config file: "%s"' "$SUDOERS_CONF_FILE"
+    fi
+
+    ## ------------------------------------------------------------
+
+    local PATHNAME
+    for PATHNAME in "$sbindir"/mmux-unsafe-users-manager "$sysconfdir"/mmux/xinitrc.d/mmux-unsafe-users-management.sh
+    do
+	mbfl_message_verbose_printf 'setting group to "%s" for file: %s' "$SAFE_USERS_GROUP" "$PATHNAME"
+	mbfl_program_declare_sudo_user root
+	if ! mbfl_file_set_group "$SAFE_USERS_GROUP" "$PATHNAME"
+	then mbfl_message_error_printf 'setting group to "%s" for file: %s' "$SAFE_USERS_GROUP" "$PATHNAME"
+	fi
+
+	mbfl_message_verbose_printf 'changing permissions to "%s" for file: %s' 'o-rwx' "$PATHNAME"
+	mbfl_program_declare_sudo_user root
+	if ! mbfl_file_set_group o-rwx "$PATHNAME"
+	then mbfl_message_error_printf 'changing permissions to "%s" for file: %s' 'o-rwx' "$PATHNAME"
+	fi
+    done
+}
+
+#page
+#### home directories normalisation
+
+function script_before_parsing_options_NORMALISE () {
+    script_USAGE="usage: ${script_PROGNAME} normalise [options]"
+    script_DESCRIPTION='Normalise the home directories of unsafe users.'
+}
+function script_action_NORMALISE () {
+    if ! mbfl_wrong_num_args 0 $ARGC
+    then
+	mbfl_main_print_usage_screen_brief
+	exit_because_wrong_num_args
+    fi
+
+    mbfl_local_varref(SUBSCRIPT_FLAGS)
+
+    mbfl_getopts_gather_mbfl_options_var mbfl_datavar(SUBSCRIPT_FLAGS)
+    mbfl_program_declare_sudo_user root
+    if mbfl_program_exec "$SCRIPT_ARGV0" sudo-normalise $SUBSCRIPT_FLAGS
+    then exit_success
+    else
+    	mbfl_message_error 'normalising unsafe users directories'
+    	exit_because_failure
+    fi
+}
+
+### ------------------------------------------------------------------------
+
+function script_before_parsing_options_SUDO_NORMALISE () {
+    script_USAGE="usage: ${script_PROGNAME} sudo-normalise [options]"
+    script_DESCRIPTION='Internal action.'
+}
+function script_action_SUDO_NORMALISE () {
+    if ! mbfl_wrong_num_args 1 $ARGC
+    then
+	mbfl_main_print_usage_screen_brief
+	exit_because_wrong_num_args
+    fi
+
+    if ! mbfl_file_is_file "$UNSAFE_USERS_LIST_FILE"
+    then
+	mbfl_message_error_printf 'unexistent users list file: "%s"' "$UNSAFE_USERS_LIST_FILE"
+	exit_because_failure
+    fi
+
+    local FIND
+    local CHOWN CHOWN_FLAGS='--no-dereference'
+    local CHMOD CHMOD_FLAGS
+    mbfl_program_found_var FIND    find    || exit_because_program_not_found
+    mbfl_program_found_var CHMOD   chmod   || exit_because_program_not_found
+    mbfl_program_found_var CHOWN   chown   || exit_because_program_not_found
+
+    if mbfl_option_verbose
+    then
+	CHOWN_FLAGS+=' --changes'
+	CHMOD_FLAGS+=' --changes'
+    fi
+    if mbfl_option_verbose_program
+    then
+	CHOWN_FLAGS+=' --verbose'
+	CHMOD_FLAGS+=' --verbose'
+    fi
+
+    mbfl_system_passwd_read
+
+    mbfl_local_varref(USERID)
+    mbfl_local_varref(USERHOME)
+    local USERNAME
+    while read USERNAME
+    do
+	mbfl_system_passwd_find_entry_by_name_var mbfl_datavar(USERID) "$USERNAME"
+	mbfl_system_passwd_get_dir_var mbfl_datavar(USERHOME) "$USERID"
+
+	mbfl_message_verbose_printf 'normalising: %s\n' "$USERNAME"
+
+	if mbfl_file_is_directory "$USERHOME"
+	then
+	    mbfl_program_declare_sudo_user root
+	    if ! mbfl_file_set_permissions 2770 "$USERHOME"
+	    then mbfl_message_error_printf 'setting permissions to 0750 for home directories parent: %s' "$USERHOME"
+	    fi
+
+	    mbfl_program_declare_sudo_user root
+	    if ! mbfl_file_set_owner "$USERNAME" "$USERHOME"
+	    then mbfl_message_error_printf 'setting owner to "%s" for home directories parent: %s' "$USERNAME" "$USERHOME"
+	    fi
+
+	    mbfl_program_declare_sudo_user root
+	    if ! mbfl_file_set_group "$USERNAME" "$USERHOME"
+	    then mbfl_message_error_printf 'setting group to "%s" for home directories parent: %s' "$USERNAME" "$USERHOME"
+	    fi
+	else mbfl_message_warning_printf 'unexistent unsafe user directory: "%s"' "$USERHOME"
+	fi
+
+	(mbfl_cd "$USERHOME"
+	 mbfl_program_declare_sudo_user root
+	 mbfl_program_exec \
+	     "$FIND" "$USERHOME" \
+	     '(' -type d -and -name '{git}'          -and -prune ')'		-or \
+	     '(' -type d -and -name '{archives}'     -and -prune ')'		-or \
+	     '(' -exec "$CHOWN" "${USERNAME}:${USERNAME}" $CHOWN_FLAGS '{}' ';' ')'
+
+	 # We want directories with permissions: u+rwx-s,g+rwxs,o-rwxs
+	 # We want files with permissions: u+r-wxs,g+r-wxs,o-rwxs
+	 mbfl_program_declare_sudo_user "$USERNAME"
+	 mbfl_program_exec \
+	     "$FIND" "$USERHOME" \
+	     '(' -type d -and -name '{git}'          -and -prune ')'		-or \
+	     '(' -type d -and -name '{archives}'     -and -prune ')'		-or \
+	     '(' -type d -and -exec "$CHMOD" 2770  '{}' $CHMOD_FLAGS ';' ')'	-or \
+	     '(' -type f -and -exec "$CHMOD" o-rwx '{}' $CHMOD_FLAGS ';' ')';)
     done <"$UNSAFE_USERS_LIST_FILE"
 }
 
