@@ -1,25 +1,29 @@
 # doinst.sh.in --
 #
 
+declare -r prefix="@prefix@"
+declare -r exec_prefix="@exec_prefix@"
+declare -r sbindir="@sbindir@"
+declare -r sysconfdir="@sysconfdir@"
+
 set -e
 
 # The group name of safe users, at most 16 characters.
 #       0123456789012345
-SAFEGRP=mmux-safe-usrs
+declare -r SAFEGRP=mmux-safe-usrs
 
 # The group name of UNsafe users, at most 16 characters.
 #         0123456789012345
-UNSAFEGRP=mmux-unsafe-usrs
+declare -r UNSAFEGRP=mmux-unsafe-usrs
 
-chmod 0400 /etc/sudoers.d/mmux-unsafe-users-management.conf
-chmod 0700 /etc/sudoers.d
+/bin/chmod 0400 "$sysconfdir"/sudoers.d/mmux-unsafe-users-management.conf
 
 /usr/sbin/groupadd --force $SAFEGRP
 /usr/sbin/groupadd --force $UNSAFEGRP
 
 for item in \
-    /usr/sbin/mmux-unsafe-users-manager				\
-    /etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
+    "$sbindir"/mmux-unsafe-users-manager			\
+    "$sysconfdir"/mmux/xinitrc.d/mmux-unsafe-users-management.sh
 do
     /bin/chgrp $SAFEGRP $item --verbose
     /bin/chmod o-rwx $item --verbose
