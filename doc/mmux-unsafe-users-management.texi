@@ -248,8 +248,8 @@ If @samp{marco} wants to create the unsafe users accounts @samp{marco-firefox} a
 @samp{marco-banking}; he has to issue the commands:
 
 @example
-$ /usr/sbin/@value{MANAGER_SCRIPT} add marco-firefox -Smarco
-$ /usr/sbin/@value{MANAGER_SCRIPT} add marco-banking -Smarco
+@value{MANAGER_SCRIPT} add marco-firefox -Smarco
+@value{MANAGER_SCRIPT} add marco-banking -Smarco
 @end example
 
 @noindent
@@ -277,11 +277,11 @@ $ groups
 marco ... mmux-safe-usrs marco-firefox marco-banking
 @end example
 
-If @samp{marco} wants to remove an unsafe user account,
-@strong{including the unsafe user's home directory}, he can do:
+If @samp{marco} wants to remove an unsafe user account, @strong{including the unsafe user's home
+directory}, he can do:
 
 @example
-$ /usr/sbin/@value{MANAGER_SCRIPT} del marco-banking -Smarco
+@value{MANAGER_SCRIPT} del marco-banking -Smarco
 @end example
 
 @noindent
@@ -345,8 +345,9 @@ $ sudo chmod g=u,o-rwx ~marco-firefox/.mozilla --recursive
 
 
 Unsafe users are managed with the @value{MANAGER_SCRIPT_COMMAND} command line utility; it should be
-installed under @file{/usr/sbin}.  Each user must prepare a list of unsafe users associated to a
-safe user account in the file @value{UNSAFE_USERS_DOTFILE}, one unsafe user name for each line.
+installed under @file{/sbin} or @file{/usr/sbin}.  Each user must prepare a list of unsafe users
+associated to a safe user account in the file @value{UNSAFE_USERS_DOTFILE}, one unsafe user name for
+each line.
 
 Synopsis:
 

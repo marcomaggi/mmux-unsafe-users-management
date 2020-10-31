@@ -5,7 +5,7 @@
 
 set -xe
 
-prefix=/usr
+prefix=/
 
 ../configure \
     --enable-maintainer-mode			\
