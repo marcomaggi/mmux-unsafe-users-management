@@ -78,8 +78,30 @@ src/sbin/mmux-unsafe-users-manager :			\
 
 #### sudoers files
 
+EXTRA_DIST		+=					\
+	src/etc/sudoers.d/mmux-unsafe-users-management.conf.sed
+
 sudoersdir		= $(sysconfdir)/sudoers.d
-dist_sudoers_DATA	= src/etc/sudoers.d/mmux-unsafe-users-management.conf
+sudoers_DATA		=					\
+	src/etc/sudoers.d/mmux-unsafe-users-management.conf
+
+CLEANFILES		+=					\
+	src/etc/sudoers.d/mmux-unsafe-users-management.conf	\
+	src/etc/sudoers.d/$(am__dirstamp)
+
+sudoers_PREREQUISITES	=			\
+	src/etc/sudoers.d/$(am__dirstamp)
+
+src/etc/sudoers.d/$(am__dirstamp):
+	@$(MKDIR_P) src/etc/sudoers.d/
+	@: > src/etc/sudoers.d/$(am__dirstamp)
+
+src/etc/sudoers.d/mmux-unsafe-users-management.conf:				\
+		src/etc/sudoers.d/mmux-unsafe-users-management.conf.sed		\
+		$(sudoers_PREREQUISITES)
+	sed --expression "s%__SBINDIR__%$(sbindir)%g" \
+            --expression "s%//%/%g" \
+	    <$(<) >$@
 
 
 #### command line completions
