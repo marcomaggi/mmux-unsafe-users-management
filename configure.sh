@@ -5,6 +5,7 @@
 
 set -xe
 
+# Installing under root is safer.
 prefix=/
 
 ../configure \
