@@ -24,7 +24,7 @@
 #page
 #### global variables
 
-declare -r script_PROGNAME=mmux-unsafe-users
+declare -r script_PROGNAME=mmux-unsafe-users-manager
 declare -r script_VERSION=0.3.1
 declare -r script_COPYRIGHT_YEARS='2014, 2018'
 declare -r script_AUTHOR='Marco Maggi'
@@ -39,7 +39,7 @@ declare -r COMPLETIONS_SCRIPT_NAMESPACE='p-mmux-unsafe-users-manager'
 ### ------------------------------------------------------------------------
 
 declare -r SCRIPT_ARGV0="$0"
-declare -r UNSAFE_HOME_PARENT=/home/unsafe-users
+declare -r DEFAULT_UNSAFE_HOME_PARENT=/home/unsafe-users
 
 # Safe users group name, at most 16 characters.
 #
@@ -101,6 +101,8 @@ function script_before_parsing_options_ADD () {
     script_USAGE="usage: ${script_PROGNAME} add UNSAFE-USERNAME --safe-user=SAFE-USERNAME [options]"
     script_DESCRIPTION='Add an unsafe user.'
     mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
+    mbfl_declare_option UNSAFE_HOME_PARENT "$DEFAULT_UNSAFE_HOME_PARENT" \
+			H unsafe-home-parent witharg 'Select the parent of the home directory for unsafe users.'
 }
 function script_action_ADD () {
     if ! mbfl_wrong_num_args 1 $ARGC
@@ -126,7 +128,7 @@ function script_action_ADD () {
 
     mbfl_getopts_gather_mbfl_options_var mbfl_datavar(SUBSCRIPT_FLAGS)
     mbfl_program_declare_sudo_user root
-    if mbfl_program_exec "$SCRIPT_ARGV0" sudo-add "$SAFE_USERNAME" "$UNSAFE_USERNAME" $SUBSCRIPT_FLAGS
+    if mbfl_program_exec "$SCRIPT_ARGV0" sudo-add "$SAFE_USERNAME" "$UNSAFE_USERNAME" "$script_option_UNSAFE_HOME_PARENT" $SUBSCRIPT_FLAGS
     then exit_success
     else
     	mbfl_message_error 'adding user'
@@ -137,11 +139,11 @@ function script_action_ADD () {
 ### ------------------------------------------------------------------------
 
 function script_before_parsing_options_SUDO_ADD () {
-    script_USAGE="usage: ${script_PROGNAME} sudo-add SAFE-USERNAME UNSAFE-USERNAME [options]"
+    script_USAGE="usage: ${script_PROGNAME} sudo-add SAFE-USERNAME UNSAFE-USERNAME UNSAFE_HOME_PARENT [options]"
     script_DESCRIPTION='Internal action.'
 }
 function script_action_SUDO_ADD () {
-    if ! mbfl_wrong_num_args 2 $ARGC
+    if ! mbfl_wrong_num_args 3 $ARGC
     then
 	mbfl_main_print_usage_screen_brief
 	exit_because_wrong_num_args
@@ -157,8 +159,9 @@ function script_action_SUDO_ADD () {
     mbfl_program_found_var mbfl_datavar(USERMOD)	/usr/sbin/usermod || exit $?
     mbfl_program_found_var mbfl_datavar(CHMOD)		/bin/chmod        || exit $?
 
-    mbfl_command_line_argument(SAFE_USERNAME,   0)
-    mbfl_command_line_argument(UNSAFE_USERNAME, 1)
+    mbfl_command_line_argument(SAFE_USERNAME,      0)
+    mbfl_command_line_argument(UNSAFE_USERNAME,    1)
+    mbfl_command_line_argument(UNSAFE_HOME_PARENT, 2)
     local -r UNSAFE_HOME="${UNSAFE_HOME_PARENT}/${UNSAFE_USERNAME}"
 
     if ! mbfl_string_is_identifier "$SAFE_USERNAME"
@@ -189,13 +192,13 @@ function script_action_SUDO_ADD () {
     # the safe user.  We create a group with the same name of
     # the unsafe user.
     mbfl_message_verbose_printf 'creating unsafe user: %s\n' "$UNSAFE_USERNAME"
-    if ! mbfl_program_exec "$USERADD" \
-	 --base-dir		"$UNSAFE_HOME_PARENT"		\
-	 --home			"$UNSAFE_HOME"			\
-	 --create-home						\
-	 --user-group						\
-	 --groups		$UNSAFE_USERS_GROUP,audio,video	\
-	 --shell		/bin/false			\
+    if ! mbfl_program_exec "$USERADD"					\
+	 --base-dir		"$UNSAFE_HOME_PARENT"			\
+	 --home			"$UNSAFE_HOME"				\
+	 --create-home							\
+	 --user-group							\
+	 --groups		$UNSAFE_USERS_GROUP,audio,video		\
+	 --shell		/bin/false				\
 	 "$UNSAFE_USERNAME"
     then
 	mbfl_message_error_printf 'creating unsafe user: %s' "$UNSAFE_USERNAME"
