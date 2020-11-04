@@ -46,7 +46,7 @@
 @set MANAGER_SCRIPT_COMMAND     @command{mmux-unsafe-users-manager}
 @set UNSAFE_USERS_DOTFILE       @file{~/.mmux-unsafe-users}
 
-@set REQUIRED_MBFL_VERSION      v3.0.0-devel.4
+@set REQUIRED_MBFL_VERSION      v3.0.0-devel.7
 
 @c page
 @c ------------------------------------------------------------
