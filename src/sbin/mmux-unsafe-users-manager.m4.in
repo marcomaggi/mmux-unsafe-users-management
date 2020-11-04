@@ -717,16 +717,9 @@ function script_action_SUDO_NORMALISE () {
 
 function normalise_unsafe_users_home_directories () {
     mbfl_mandatory_parameter(SAFE_USERNAME, 1, safe user name)
+    mbfl_local_varref(UNSAFE_USERS_LIST_FILE)
 
-    read_passwd_data
-
-    mbfl_local_varref(SAFE_USERID)
-    mbfl_local_varref(SAFE_USERHOME)
-    mbfl_system_passwd_find_entry_by_name_var mbfl_datavar(SAFE_USERID)   "$SAFE_USERNAME"
-    mbfl_system_passwd_get_dir_var            mbfl_datavar(SAFE_USERHOME) "$SAFE_USERID"
-    local UNSAFE_USERS_LIST_FILE
-    printf -v UNSAFE_USERS_LIST_FILE '%s/.mmux-unsafe-users' "$SAFE_USERHOME"
-
+    determine_unsafe_users_list_file_var mbfl_datavar(UNSAFE_USERS_LIST_FILE) "$SAFE_USERNAME"
     mbfl_message_verbose_printf 'reading unsafe users list from: "%s"\n' "$UNSAFE_USERS_LIST_FILE"
 
     local UNSAFE_USERNAME
@@ -883,13 +876,18 @@ function script_action_HELP_PRINT_COMPLETIONS_SCRIPT () {
 
 function determine_unsafe_users_list_file_var () {
     mbfl_mandatory_nameref_parameter(UNSAFE_USERS_LIST_FILE, 1, result variable)
-    mbfl_mandatory_parameter(SAFE_USERNAME, 2, safe user name)
+    mbfl_mandatory_parameter(SAFE_USERNAME,                  2, safe user name)
+    mbfl_local_varref(SAFE_USER_INDEX)
+    mbfl_local_varref(SAFE_USERHOME)
 
-    eval UNSAFE_USERS_LIST_FILE=~"$SAFE_USERNAME"/.mmux-unsafe-users
+    read_passwd_data
+    mbfl_system_passwd_find_entry_by_name_var mbfl_datavar(SAFE_USER_INDEX) "$SAFE_USERNAME"
+    mbfl_system_passwd_get_dir_var            mbfl_datavar(SAFE_USERHOME)   "$SAFE_USER_INDEX"
 
+    printf -v UNSAFE_USERS_LIST_FILE '%s/.mmux-unsafe-users' "$SAFE_USERHOME"
     if ! mbfl_file_is_readable "$UNSAFE_USERS_LIST_FILE"
     then
-	mbfl_message_error_printf 'unexistent or unreadable users list file: "%s"' "$UNSAFE_USERS_LIST_FILE"
+	mbfl_message_error_printf 'unexistent or unreadable unsafe users list file: "%s"' "$UNSAFE_USERS_LIST_FILE"
 	exit_because_failure
     fi
 }
