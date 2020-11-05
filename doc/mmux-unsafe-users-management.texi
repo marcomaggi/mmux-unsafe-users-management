@@ -117,7 +117,6 @@ included in the section entitled ``@gnu{} Free Documentation License''.
 * using::                       How to use the package.
 * tips::                        Useful stuff to know.
 * script::                      The command line utility that does it all.
-* normalisation::               Directories normalisation.
 * model::                       How unsafe users are associated to safe ones.
 
 Appendices
@@ -356,55 +355,150 @@ Synopsis:
 @value{MANAGER_SCRIPT} [action] [options]
 @end example
 
-Action commands:
+@menu
+* script adding::               Adding unsafe users.
+* script deleting::             Deleting unsafe users.
+* script x-window::             Enabling/disabling X Window for unsafe users.
+* script normalisation::        Directories normalisation.
+@end menu
+
+@c page
+@node script adding
+@section Adding unsafe users
+
+
+The action command @code{add} adds an unsafe user associated to a selected safe user.
+
+Action command synopsis:
+
+@example
+@value{MANAGER_SCRIPT} add UNSAFE_USERNAME --safe-user=SAFE-USERNAME [options]
+@end example
+
+@noindent
+available options:
 
 @table @code
-@item add UNSAFE-USERNAME --safe-user=SAFE-USERNAME [options]
-Add an unsafe user associated to the selected safe user.
-
-@item del UNSAFE-USERNAME --safe-user=SAFE-USERNAME [options]
-Delete an unsafe user associated to the selected safe user.
-
-@item enable-x [options]
-Enable unsafe users running X applications in a safe user X server.
-
-@item disable-x [options]
-Disable unsafe users running X applications in a safe user X server.
-
-@item normalise [options]
-Scan the home directories of the unsafe users associated to a user and fix the files ownership and
-access permissions.  @ref{normalisation, Directories normalisation}.
-
-@item help [options]
-Help the user of this script.
-@end table
-
-Options:
-
-@table @code
-@item -S@var{SAFE-USERNAME}
-@itemx --safe-user=@var{SAFE-USERNAME}
-Select the safe user associated to the unsafe user.
-
 @item -H@var{UNSAFE_HOME_PARENT}
 @itemx --unsafe-home-parent=@var{UNSAFE_HOME_PARENT}
-Available for the action @code{add}.  Select a parent directory for the unsafe users home
+Available for all the action @code{add}.  Select a parent directory for the unsafe users' home
 directories.  Defaults to @file{/home/unsafe-users}.
+
+@item -S@var{SAFE_USERNAME}
+@itemx --safe-user=@var{SAFE_USERNAME}
+Select the safe user associated to an unsafe user.
 @end table
 
 @c page
-@node normalisation
-@chapter Directories normalisation
+@node script deleting
+@section Deleting unsafe users
 
 
-Using the action @code{normalise} of the script, we can scan the home directories of all the unsafe
-users associated to a specific safe user and fix files ownership and access permissions.  The
-normalisation operation works as follows:
+The action command @code{del} deletes an unsafe user.
 
-@itemize
+Action command synopsis:
+
+@example
+@value{MANAGER_SCRIPT} del UNSAFE_USERNAME [options]
+@end example
+
+@c page
+@node script x-window
+@section Enabling/disabling X Window for unsafe users
+
+
+The action command @code{enable-x} enables unsafe users running X applications in a safe user X
+server.  The action command @code{disable-x} disables unsafe users running X applications in a safe
+user X server.
+
+Action commands synopsis:
+
+@example
+@value{MANAGER_SCRIPT} enable-x  [options] [UNSAFE_USERNAME]
+@value{MANAGER_SCRIPT} disable-x [options] [UNSAFE_USERNAME]
+@end example
+
+@c page
+@node script normalisation
+@section Directories normalisation
+
+
+By invoking the action @code{normalise} of the script @value{MANAGER_SCRIPT_COMMAND}, we can scan
+the home directories of the unsafe users associated to a specific safe user and fix files' ownership
+and access permissions.  The home directory of the unsafe users is determined by reading the file
+@file{/etc/passwd}.
+
+Action command synopsis:
+
+@example
+@value{MANAGER_SCRIPT} normalise [options]
+@end example
+
+@noindent
+available action--specific option:
+
+@table @code
+@item -S@var{SAFE_USERNAME}
+@itemx --safe-user=@var{SAFE_USERNAME}
+Select the safe user name.  The normalisation will be performed for all the unsafe users associated
+to the selected safe user, listed in the file @file{~/.mmux-unsafe-users}.  If this option is not
+used: the safe user name will default to that the effective user running the script.
+
+@item -U@var{UNSAFE_USERNAME}
+@itemx --unsafe-username=@var{UNSAFE_USERNAME}
+Select the name of an unsafe user for which the normalisation will take place; the other unsafe
+users will be left untouched.
+@end table
+
+@noindent
+when both @option{--safe-user} and @option{--unsafe-username} are used: @option{--safe-user} is
+ignored.
+
+The normalisation operation works as follows:
+
+@enumerate
 @item
+Normalise the home directory itself:
 
-@end itemize
+@enumerate A
+@item
+Set the owner to the unsafe user UID.
+
+@item
+Set the group to a group whose name equals the unsafe user name.
+
+@item
+Change the access permissions to @samp{u+rwx-s,g+rwxs,o-rwxs}.
+@end enumerate
+
+@item
+Normalise all the directories in the subdirectory tree of the home directory:
+
+@enumerate A
+@item
+Set the owner to the unsafe user UID.
+
+@item
+Set the group to a group whose name equals the unsafe user name.
+
+@item
+Change the access permissions to @samp{u+rwx-s,g+rwxs,o-rwxs}.
+@end enumerate
+
+@item
+Normalise all the file in the subdirectory tree of the home directory:
+
+@enumerate A
+@item
+Set the owner to the unsafe user UID.
+
+@item
+Set the group to a group whose name equals the unsafe user name.
+
+@item
+Change the access permissions to @samp{u-s,g-s,o-rwxs}.
+@end enumerate
+@end enumerate
 
 @c page
 @node model

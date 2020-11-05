@@ -49,6 +49,19 @@ declare -r SCRIPT_ARGV0="$0"
 #
 declare -r DEFAULT_UNSAFE_USERS_HOME_BASE_DIRECTORY=/home/unsafe-users
 
+# Access permissions for the home directory of an unsafe user.
+#
+declare -r DEFAULT_UNSAFE_USERHOME_MODE='u+rwx-s,g+rwxs,o-rwxs'
+
+# Access permissions for the directories in the subdirectory tree of the home directory of an unsafe
+# user.
+#
+declare -r DEFAULT_UNSAFE_USERHOME_DIRECTORIES_MODE='u+rwx-s,g+rwxs,o-rwxs'
+
+# Access permissions for the files in the subdirectory tree of the home directory of an unsafe user.
+#
+declare -r DEFAULT_UNSAFE_USERHOME_FILES_MODE='u-s,g-s,o-rwxs'
+
 # Safe users group name, at most 16 characters.
 #
 #                           0123456789012345
@@ -80,12 +93,13 @@ mbfl_declare_program chgrp
 mbfl_declare_program install
 mbfl_declare_program xhost
 
-mbfl_declare_program /usr/sbin/useradd
-mbfl_declare_program /usr/sbin/userdel
-mbfl_declare_program /usr/sbin/usermod
-mbfl_declare_program /usr/sbin/groupadd
-mbfl_declare_program /usr/sbin/groupdel
-mbfl_declare_program /usr/sbin/groupmod
+self_PROGRAM_USERADD='@MMUX_PROGRAM_USERADD@'
+self_PROGRAM_USERDEL='@MMUX_PROGRAM_USERDEL@'
+self_PROGRAM_USERMOD='@MMUX_PROGRAM_USERMOD@'
+self_PROGRAM_GROUPADD='@MMUX_PROGRAM_GROUPADD@'
+self_PROGRAM_GROUPDEL='@MMUX_PROGRAM_GROUPDEL@'
+self_PROGRAM_GROUPMOD='@MMUX_PROGRAM_GROUPMOD@'
+self_PROGRAM_INSTALL='@MMUX_PROGRAM_INSTALL@'
 
 #page
 #### script actions
@@ -167,13 +181,6 @@ function script_action_SUDO_ADD () {
 	exit_because_wrong_num_args
     fi
 
-    mbfl_local_varref(INSTALL)
-    mbfl_local_varref(USERADD)
-    mbfl_local_varref(USERMOD)
-    mbfl_program_found_var mbfl_datavar(INSTALL)	install  || exit $?
-    mbfl_program_found_var mbfl_datavar(USERADD)	/usr/sbin/useradd || exit $?
-    mbfl_program_found_var mbfl_datavar(USERMOD)	/usr/sbin/usermod || exit $?
-
     mbfl_command_line_argument(SAFE_USERNAME,      0)
     mbfl_command_line_argument(UNSAFE_USERNAME,    1)
     mbfl_command_line_argument(UNSAFE_USERS_HOME_BASE_DIRECTORY, 2)
@@ -194,7 +201,7 @@ function script_action_SUDO_ADD () {
     if ! mbfl_file_is_directory "$UNSAFE_USERS_HOME_BASE_DIRECTORY"
     then
 	mbfl_message_verbose_printf 'creating base directory for unsafe users home: "%s"\n' "$UNSAFE_USERS_HOME_BASE_DIRECTORY"
-	if mbfl_program_exec "$INSTALL" -m 0750 -o root -g mmux-unsafe-usrs -d "$UNSAFE_USERS_HOME_BASE_DIRECTORY"
+	if mbfl_program_exec "$self_PROGRAM_INSTALL" -m 0750 -o root -g mmux-unsafe-usrs -d "$UNSAFE_USERS_HOME_BASE_DIRECTORY"
 	then
 	    mbfl_message_error_printf 'creating unsafe home directories parent: "%s"' "$UNSAFE_USERS_HOME_BASE_DIRECTORY"
 	    exit_because_failure
@@ -207,7 +214,7 @@ function script_action_SUDO_ADD () {
     # the safe user.  We create a group with the same name of
     # the unsafe user.
     mbfl_message_verbose_printf 'creating unsafe user: "%s"\n' "$UNSAFE_USERNAME"
-    if ! mbfl_program_exec "$USERADD"					\
+    if ! mbfl_program_exec "$self_PROGRAM_USERADD"			\
 	 --base-dir		"$UNSAFE_USERS_HOME_BASE_DIRECTORY"	\
 	 --home			"$UNSAFE_HOME"				\
 	 --create-home							\
@@ -227,7 +234,7 @@ function script_action_SUDO_ADD () {
     fi
 
     # Add safe user to the unsafe user's group.
-    if ! mbfl_program_exec "$USERMOD" "$SAFE_USERNAME" --append --groups "$UNSAFE_USERNAME"
+    if ! mbfl_program_exec "$self_PROGRAM_USERMOD" "$SAFE_USERNAME" --append --groups "$UNSAFE_USERNAME"
     then
 	mbfl_message_error "adding safe user to unsafe user's group"
     fi
@@ -291,10 +298,6 @@ function script_action_SUDO_DEL () {
 	exit_because_wrong_num_args
     fi
 
-    mbfl_local_varref(USERDEL)
-    mbfl_local_varref(GROUPDEL)
-    mbfl_program_found_var mbfl_datavar(USERDEL)	/usr/sbin/userdel  || exit $?
-    mbfl_program_found_var mbfl_datavar(GROUPDEL)	/usr/sbin/groupdel || exit $?
     mbfl_command_line_argument(SAFE_USERNAME,   0)
     mbfl_command_line_argument(UNSAFE_USERNAME, 1)
 
@@ -321,14 +324,14 @@ function script_action_SUDO_DEL () {
     fi
 
     mbfl_message_verbose_printf 'deleting user: "%s"\n' "$UNSAFE_USERNAME"
-    if ! mbfl_program_exec "$USERDEL" "$UNSAFE_USERNAME" --remove
+    if ! mbfl_program_exec "$self_PROGRAM_USERDEL" "$UNSAFE_USERNAME" --remove
     then mbfl_message_error_printf 'removing unsafe user: "%s"' "$UNSAFE_USERNAME"
     fi
 
     # When "groupdel" removes the unsafe group: it also  removes it from the list of groups of which
     # the safe user is part.
     mbfl_message_verbose_printf 'deleting group: "%s"\n' "$UNSAFE_USERNAME"
-    if ! mbfl_program_exec "$GROUPDEL" "$UNSAFE_USERNAME"
+    if ! mbfl_program_exec "$self_PROGRAM_GROUPDEL" "$UNSAFE_USERNAME"
     then mbfl_message_error_printf 'removing unsafe group: "%s"' "$UNSAFE_USERNAME"
     fi
 }
@@ -469,8 +472,8 @@ function script_action_SETUP () {
     fi
 
     mbfl_local_varref(SUBSCRIPT_FLAGS)
-
     mbfl_getopts_gather_mbfl_options_var mbfl_datavar(SUBSCRIPT_FLAGS)
+
     mbfl_program_declare_sudo_user root
     if mbfl_program_exec "$SCRIPT_ARGV0" sudo-setup "$script_option_UNSAFE_USERS_HOME_BASE_DIRECTORY" $SUBSCRIPT_FLAGS
     then exit_success
@@ -495,22 +498,17 @@ function script_action_SUDO_SETUP () {
 
     mbfl_command_line_argument(UNSAFE_USERS_HOME_BASE_DIRECTORY, 0)
 
-    mbfl_local_varref(GROUPADD)
-    mbfl_local_varref(INSTALL)
-    mbfl_program_found_var mbfl_datavar(GROUPADD) /usr/sbin/groupadd || exit $?
-    mbfl_program_found_var mbfl_datavar(INSTALL)  install            || exit $?
-
     ## ------------------------------------------------------------
 
     mbfl_message_verbose_printf 'creating safe users groups: "%s"\n' "$SAFE_USERS_GROUP"
-    if ! mbfl_program_exec "$GROUPADD" --force "$SAFE_USERS_GROUP"
+    if ! mbfl_program_exec "$self_PROGRAM_GROUPADD" --force "$SAFE_USERS_GROUP"
     then
 	mbfl_message_error_printf 'creating safe users groups: "%s"' "$SAFE_USERS_GROUP"
 	exit_because_failure
     fi
 
     mbfl_message_verbose_printf 'creating unsafe users groups: "%s"\n' "$UNSAFE_USERS_GROUP"
-    if ! mbfl_program_exec "$GROUPADD" --force "$UNSAFE_USERS_GROUP"
+    if ! mbfl_program_exec "$self_PROGRAM_GROUPADD" --force "$UNSAFE_USERS_GROUP"
     then
 	mbfl_message_error_printf 'creating unsafe users groups: "%s"' "$UNSAFE_USERS_GROUP"
 	exit_because_failure
@@ -529,7 +527,7 @@ function script_action_SUDO_SETUP () {
 	fi
 
 	mbfl_program_declare_sudo_user root
-	if mbfl_program_exec "$INSTALL" $INSTALL_FLAGS '--' "$UNSAFE_USERS_HOME_BASE_DIRECTORY"
+	if mbfl_program_exec "$self_PROGRAM_INSTALL" $INSTALL_FLAGS '--' "$UNSAFE_USERS_HOME_BASE_DIRECTORY"
 	then
 	    mbfl_message_error_printf 'creating unsafe home directories parent: "%s"' "$UNSAFE_USERS_HOME_BASE_DIRECTORY"
 	    exit_because_failure
@@ -619,114 +617,131 @@ function script_action_SUDO_SETUP () {
 #### home directories normalisation
 
 function script_before_parsing_options_NORMALISE () {
-    script_USAGE="usage: ${script_PROGNAME} normalise [SAFE_USERNAME] [options]"
+    script_USAGE="usage: ${script_PROGNAME} normalise [options]"
     script_DESCRIPTION='Normalise the home directories of unsafe users associated to a single safe user.\n
 If the SAFE_USERNAME is not given on the command line: it is determined
 using the program "whoami" from the GNU Coreutils.'
-    mbfl_declare_option UNSAFE_USERNAME '' '' unsafe-username witharg 'Select a single unsafe user whose directory we want to normalise.'
+    mbfl_declare_option SAFE_USERNAME   '' S safe-user       witharg 'Select the name of the safe user.'
+    mbfl_declare_option UNSAFE_USERNAME '' U unsafe-username witharg 'Select a single unsafe user whose directory we want to normalise.'
 }
 function script_action_NORMALISE () {
-    if ! mbfl_wrong_num_args_range 0 1 $ARGC
+    if ! mbfl_wrong_num_args 0 $ARGC
     then
 	mbfl_main_print_usage_screen_brief
 	exit_because_wrong_num_args
     fi
 
-    if ((1 == ARGC))
-    then mbfl_command_line_argument(SAFE_USERNAME, 0)
-    else
-	mbfl_local_varref(SAFE_USERNAME)
-	if ! {
-		mbfl_option_test_save
-		mbfl_system_whoami_var mbfl_datavar(SAFE_USERNAME)
-		mbfl_option_test_restore
-	    }
+    # Determine the safe username.
+    {
+	mbfl_local_varref(SAFE_USERNAME, "$script_option_SAFE_USERNAME")
+	if mbfl_string_is_empty "$SAFE_USERNAME"
+	then determine_effective_user_name mbfl_datavar(SAFE_USERNAME)
+	fi
+	if ! mbfl_string_is_username "$SAFE_USERNAME"
 	then
-	    mbfl_message_error_printf 'unable to determine effective user with "whoami"'
+	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
 	    exit_because_failure
 	fi
-    fi
-    if ! mbfl_string_is_username "$SAFE_USERNAME"
-    then
-	mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	exit_because_failure
-    fi
-
-    mbfl_message_verbose_printf 'the selected user name is: "%s"\n' "$SAFE_USERNAME"
-
-    mbfl_local_varref(SUBSCRIPT_FLAGS)
-    mbfl_getopts_gather_mbfl_options_var mbfl_datavar(SUBSCRIPT_FLAGS)
-
-    if mbfl_string_is_not_empty "$script_option_UNSAFE_USERNAME"
-    then
-	if mbfl_string_is_username "$script_option_UNSAFE_USERNAME"
-	then SUBSCRIPT_FLAGS+=" --unsafe-username='${script_option_UNSAFE_USERNAME}'"
-	else
-	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$script_option_UNSAFE_USERNAME"
-	    exit_because_failure
-	fi
-    fi
-
-    mbfl_program_declare_sudo_user root
-    if {
-	mbfl_option_test_save
-	mbfl_program_exec "$SCRIPT_ARGV0" sudo-normalise "$SAFE_USERNAME" $SUBSCRIPT_FLAGS
-	mbfl_option_test_restore
+	mbfl_message_verbose_printf 'the selected safe user name is: "%s"\n' "$SAFE_USERNAME"
     }
-    then exit_success
-    else
-    	mbfl_message_error 'normalising unsafe users directories'
-    	exit_because_failure
-    fi
+
+    # Determine the unsafe username.
+    {
+	mbfl_local_varref(UNSAFE_USERNAME, "$script_option_UNSAFE_USERNAME")
+	if mbfl_string_is_not_empty "$UNSAFE_USERNAME"
+	then
+	    if ! mbfl_string_is_username "$UNSAFE_USERNAME"
+	    then
+		mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
+		exit_because_failure
+	    fi
+	    mbfl_message_verbose_printf 'the selected unsafe user name is: "%s"\n' "$UNSAFE_USERNAME"
+	    mbfl_message_verbose_printf 'unsafe user selected, so ignoring the safe user name: "%s"\n'      "$SAFE_USERNAME"
+	fi
+    }
+
+    # Execute the script itself, invoking the action "sudo-normalise".
+    {
+	mbfl_local_varref(SUBSCRIPT_FLAGS)
+	mbfl_getopts_gather_mbfl_options_var mbfl_datavar(SUBSCRIPT_FLAGS)
+
+	mbfl_program_declare_sudo_user root
+	if {
+	    mbfl_option_test_save
+	    mbfl_program_exec "$SCRIPT_ARGV0" sudo-normalise $SUBSCRIPT_FLAGS '--' "$SAFE_USERNAME" "$UNSAFE_USERNAME"
+	    mbfl_option_test_restore
+	}
+	then exit_success
+	else
+    	    mbfl_message_error 'normalising unsafe users directories'
+    	    exit_because_failure
+	fi
+    }
 }
 
 ### ------------------------------------------------------------------------
 
 function script_before_parsing_options_SUDO_NORMALISE () {
-    script_USAGE="usage: ${script_PROGNAME} sudo-normalise SAFE_USERNAME [options]"
+    script_USAGE="usage: ${script_PROGNAME} sudo-normalise [options] SAFE_USERNAME UNSAFE_USERNAME"
     script_DESCRIPTION='Internal action.'
-    mbfl_declare_option UNSAFE_USERNAME '' '' unsafe-username witharg 'Select a single unsafe user whose directory we want to normalise.'
 }
 function script_action_SUDO_NORMALISE () {
-    if ! mbfl_wrong_num_args 1 $ARGC
+    if ! mbfl_wrong_num_args 2 $ARGC
     then
 	mbfl_main_print_usage_screen_brief
 	exit_because_wrong_num_args
     fi
 
-    mbfl_command_line_argument(SAFE_USERNAME, 0)
-    if ! mbfl_string_is_username "$SAFE_USERNAME"
-    then
-	mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	exit_because_failure
-    fi
-
-    if mbfl_string_is_not_empty "$script_option_UNSAFE_USERNAME"
-    then
-	if mbfl_string_is_username "$script_option_UNSAFE_USERNAME"
-	then normalise_single_unsafe_user_home_directory "$SAFE_USERNAME" "$script_option_UNSAFE_USERNAME"
-	else
-	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$script_option_UNSAFE_USERNAME"
+    # Acquire the safe username.
+    {
+	mbfl_command_line_argument(SAFE_USERNAME, 0)
+	if ! mbfl_string_is_username "$SAFE_USERNAME"
+	then
+	    mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
 	    exit_because_failure
 	fi
-    else normalise_unsafe_users_home_directories "$SAFE_USERNAME"
-    fi
+    }
+
+    # Acquire the unsafe username.
+    {
+	mbfl_command_line_argument(UNSAFE_USERNAME, 1)
+	if mbfl_string_is_not_empty "$UNSAFE_USERNAME"
+	then
+	    if ! mbfl_string_is_username "$UNSAFE_USERNAME"
+	    then
+		mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
+		exit_because_failure
+	    fi
+	fi
+    }
+
+    # Perform the requested normalisation.
+    {
+	if mbfl_string_is_empty "$UNSAFE_USERNAME"
+	then normalise_unsafe_users_home_directories     "$SAFE_USERNAME"
+	else normalise_single_unsafe_user_home_directory "$SAFE_USERNAME" "$UNSAFE_USERNAME"
+	fi
+    }
 }
 
 ### ------------------------------------------------------------------------
 
 function normalise_unsafe_users_home_directories () {
     mbfl_mandatory_parameter(SAFE_USERNAME, 1, safe user name)
-    mbfl_local_varref(UNSAFE_USERS_LIST_FILE)
 
+    mbfl_local_varref(UNSAFE_USERS_LIST_FILE)
     determine_unsafe_users_list_file_var mbfl_datavar(UNSAFE_USERS_LIST_FILE) "$SAFE_USERNAME"
     mbfl_message_verbose_printf 'reading unsafe users list from: "%s"\n' "$UNSAFE_USERS_LIST_FILE"
 
     local UNSAFE_USERNAME
     {
-	mbfl_option_test_save
-	mbfl_file_read "$UNSAFE_USERS_LIST_FILE"
-	mbfl_option_test_restore
+	mbfl_location_enter
+	{
+	    mbfl_option_test_save
+	    mbfl_location_handler mbfl_option_test_restore
+	    mbfl_file_read "$UNSAFE_USERS_LIST_FILE"
+	}
+	mbfl_location_leave
     } | while read UNSAFE_USERNAME
     do normalise_single_unsafe_user_home_directory "$SAFE_USERNAME" "$UNSAFE_USERNAME"
     done
@@ -737,33 +752,26 @@ function normalise_unsafe_users_home_directories () {
 function normalise_single_unsafe_user_home_directory () {
     mbfl_mandatory_parameter(SAFE_USERNAME,   1, safe user name)
     mbfl_mandatory_parameter(UNSAFE_USERNAME, 2, unsafe user name)
+    local -r UNSAFE_GROUPNAME=$UNSAFE_USERNAME
 
-    read_passwd_data
+    mbfl_message_verbose_printf 'processing unsafe user: "%s"\n' "$UNSAFE_USERNAME"
 
     mbfl_local_varref(UNSAFE_USER_INDEX)
     mbfl_local_varref(UNSAFE_USERHOME)
-    # NOTE  We *cannot*  make this  variable  readonly with  "local -r";  if  we try  it: the  first
-    # iteration will set  it, the subsequent iterations will  *not* mutate it.  IMHO this  is a Bash
-    # bug, but what do I know?  (Marco Maggi; Nov 4, 2020)
-    local UNSAFE_GROUPNAME=$UNSAFE_USERNAME
 
-    mbfl_message_verbose_printf 'processing unsafe user: "%s"\n' "$UNSAFE_USERNAME"
-    if ! mbfl_string_is_username "$UNSAFE_USERNAME"
-    then
-	mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-	exit_because_failure
-    fi
-
+    read_passwd_data
     mbfl_system_passwd_find_entry_by_name_var mbfl_datavar(UNSAFE_USER_INDEX) "$UNSAFE_USERNAME"
     mbfl_system_passwd_get_dir_var            mbfl_datavar(UNSAFE_USERHOME)   "$UNSAFE_USER_INDEX"
-    mbfl_message_verbose_printf 'the index of the unsafe user is: "%s"\n' "$UNSAFE_USER_INDEX"
+    mbfl_message_verbose_printf 'the index of the unsafe user is: "%s"\n'   "$UNSAFE_USER_INDEX"
     mbfl_message_verbose_printf 'the unsafe user home directory is: "%s"\n' "$UNSAFE_USERHOME"
 
     if mbfl_file_is_directory "$UNSAFE_USERHOME"
     then
-	mbfl_message_verbose_printf 'setting permissions to 0750 for unsafe user home: "%s"\n' "$UNSAFE_USERHOME"
-	if ! mbfl_file_set_permissions 2770 "$UNSAFE_USERHOME"
-	then mbfl_message_error_printf 'setting permissions to 0750 for unsafe user home: "%s"' "$UNSAFE_USERHOME"
+	local -r USERHOME_PERMISSIONS=$DEFAULT_UNSAFE_USERHOME_MODE
+
+	mbfl_message_verbose_printf 'setting permissions to %s for unsafe user home: "%s"\n' $USERHOME_PERMISSIONS "$UNSAFE_USERHOME"
+	if ! mbfl_file_set_permissions $USERHOME_PERMISSIONS "$UNSAFE_USERHOME"
+	then mbfl_message_error_printf 'setting permissions to %s for unsafe user home: "%s"' $USERHOME_PERMISSIONS "$UNSAFE_USERHOME"
 	fi
 
 	mbfl_message_verbose_printf 'setting owner to "%s" for unsafe user home: "%s"\n' "$UNSAFE_USERNAME" "$UNSAFE_USERHOME"
@@ -797,28 +805,27 @@ function normalise_single_unsafe_user_home_directory () {
     fi
 
     local -r OWNER_GROUP="${UNSAFE_USERNAME}:${UNSAFE_GROUPNAME}"
-    local -r DIRECTORY_PERMISSIONS=u+rwx-s,g+rwxs,o-rwxs
-    local -r FILE_PERMISSIONS=u-s,g-s,o-rwxs
+    local -r DIRECTORY_PERMISSIONS=$DEFAULT_UNSAFE_USERHOME_DIRECTORIES_MODE
+    local -r FILE_PERMISSIONS=$DEFAULT_UNSAFE_USERHOME_FILES_MODE
 
     mbfl_message_verbose_printf 'normalising permissions for entries in unsafe user home directory: "%s"\n' "$UNSAFE_USERHOME"
-    mbfl_message_verbose_printf 'setting owner and group to "%s"\n' "$OWNER_GROUP"
-    mbfl_message_verbose_printf 'setting directory permissions to: "%s"\n' "$DIRECTORY_PERMISSIONS"
-    mbfl_message_verbose_printf 'setting file permissions to: "%s"\n' "$FILE_PERMISSIONS"
+    mbfl_message_verbose_printf 'setting owner and group to "%s"\n'         "$OWNER_GROUP"
+    mbfl_message_verbose_printf 'changing directory permissions to: "%s"\n' "$DIRECTORY_PERMISSIONS"
+    mbfl_message_verbose_printf 'changing file permissions to: "%s"\n'      "$FILE_PERMISSIONS"
 
     #mbfl_program_declare_sudo_user "$UNSAFE_USERNAME"
     if ! mbfl_program_exec "$FIND" "$UNSAFE_USERHOME"						         \
 	 '(' -type d -and -name '{git}'          -and -prune ')'				    -or  \
 	 '(' -type d -and -name '{archives}'     -and -prune ')'				    -or  \
 	 '('                                                                                             \
-	     '(' -exec "$CHOWN" "$OWNER_GROUP"                           $CHOWN_FLAGS '--' '{}' ';' ')' -and \
-	     '('                                                                                             \
-	         '(' -type d -and -exec "$CHMOD" $DIRECTORY_PERMISSIONS  $CHMOD_FLAGS '--' '{}' ';' ')' -or  \
-		 '(' -type f -and -exec "$CHMOD" $FILE_PERMISSIONS       $CHMOD_FLAGS '--' '{}' ';' ')'      \
-              ')'                                                                                            \
+	 '(' -exec "$CHOWN" "$OWNER_GROUP"                       $CHOWN_FLAGS '--' '{}' ';' ')'     -and \
+	 '('                                                                                             \
+	 '(' -type d -and -exec "$CHMOD" $DIRECTORY_PERMISSIONS  $CHMOD_FLAGS '--' '{}' ';' ')'     -or  \
+	 '(' -type f -and -exec "$CHMOD" $FILE_PERMISSIONS       $CHMOD_FLAGS '--' '{}' ';' ')'          \
+         ')'                                                                                             \
 	 ')'
     then
-	mbfl_message_error_printf 'setting owner and group to "%s" for entries in unsafe user home directory: "%s"' \
-				  "${UNSAFE_USERNAME}:${UNSAFE_GROUPNAME}" "$UNSAFE_USERHOME"
+	mbfl_message_error_printf 'setting owner, group ad permissions for entries in unsafe user home directory: "%s"' "$UNSAFE_USERHOME"
 	return_because_failure
     fi
 }
@@ -873,6 +880,20 @@ function script_action_HELP_PRINT_COMPLETIONS_SCRIPT () {
 
 #page
 #### helper functions
+
+function determine_effective_user_name () {
+    mbfl_mandatory_nameref_parameter(SAFE_USERNAME, 1, safe user name)
+
+    if ! {
+	    mbfl_option_test_save
+	    mbfl_system_whoami_var mbfl_datavar(SAFE_USERNAME)
+	    mbfl_option_test_restore
+	}
+    then
+	mbfl_message_error_printf 'unable to determine effective user with "whoami"'
+	exit_because_failure
+    fi
+}
 
 function determine_unsafe_users_list_file_var () {
     mbfl_mandatory_nameref_parameter(UNSAFE_USERS_LIST_FILE, 1, result variable)

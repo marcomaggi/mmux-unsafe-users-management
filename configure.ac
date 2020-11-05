@@ -36,8 +36,99 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 
-AC_CHECK_PROG([BASH_PROGRAM],[bash],[bash],[:])
 MBFL_SETUP
+
+
+#### external programs
+
+AC_ARG_WITH([bash],
+  AS_HELP_STRING([--with-bash],[select a pathname for the executable bash]),
+  [MMUX_PROGRAM_BASH=$withval],
+  [MMUX_PROGRAM_BASH=/bin/bash])
+
+dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
+dnl variable argument.
+AC_PATH_PROG([MMUX_PROGRAM_BASH],[$MMUX_PROGRAM_BASH],[/bin/false])
+
+dnl --------------------------------------------------------------------
+
+AC_ARG_WITH([useradd],
+  AS_HELP_STRING([--with-useradd],[select a pathname for the executable useradd]),
+  [MMUX_PROGRAM_USERADD=$withval],
+  [MMUX_PROGRAM_USERADD=/usr/bin/useradd])
+
+dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
+dnl variable argument.
+AC_PATH_PROG([MMUX_PROGRAM_USERADD],[$MMUX_PROGRAM_USERADD],[/bin/false])
+
+dnl --------------------------------------------------------------------
+
+AC_ARG_WITH([userdel],
+  AS_HELP_STRING([--with-userdel],[select a pathname for the executable userdel]),
+  [MMUX_PROGRAM_USERDEL=$withval],
+  [MMUX_PROGRAM_USERDEL=/usr/bin/userdel])
+
+dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
+dnl variable argument.
+AC_PATH_PROG([MMUX_PROGRAM_USERDEL],[$MMUX_PROGRAM_USERDEL],[/bin/false])
+
+dnl --------------------------------------------------------------------
+
+AC_ARG_WITH([usermod],
+  AS_HELP_STRING([--with-usermod],[select a pathname for the executable usermod]),
+  [MMUX_PROGRAM_USERMOD=$withval],
+  [MMUX_PROGRAM_USERMOD=/usr/bin/usermod])
+
+dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
+dnl variable argument.
+AC_PATH_PROG([MMUX_PROGRAM_USERMOD],[$MMUX_PROGRAM_USERMOD],[/bin/false])
+
+dnl --------------------------------------------------------------------
+
+AC_ARG_WITH([groupadd],
+  AS_HELP_STRING([--with-groupadd],[select a pathname for the executable groupadd]),
+  [MMUX_PROGRAM_GROUPADD=$withval],
+  [MMUX_PROGRAM_GROUPADD=/usr/bin/groupadd])
+
+dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
+dnl variable argument.
+AC_PATH_PROG([MMUX_PROGRAM_GROUPADD],[$MMUX_PROGRAM_GROUPADD],[/bin/false])
+
+dnl --------------------------------------------------------------------
+
+AC_ARG_WITH([groupdel],
+  AS_HELP_STRING([--with-groupdel],[select a pathname for the executable groupdel]),
+  [MMUX_PROGRAM_GROUPDEL=$withval],
+  [MMUX_PROGRAM_GROUPDEL=/usr/bin/groupdel])
+
+dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
+dnl variable argument.
+AC_PATH_PROG([MMUX_PROGRAM_GROUPDEL],[$MMUX_PROGRAM_GROUPDEL],[/bin/false])
+
+dnl --------------------------------------------------------------------
+
+AC_ARG_WITH([groupmod],
+  AS_HELP_STRING([--with-groupmod],[select a pathname for the executable groupmod]),
+  [MMUX_PROGRAM_GROUPMOD=$withval],
+  [MMUX_PROGRAM_GROUPMOD=/usr/bin/groupmod])
+
+dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
+dnl variable argument.
+AC_PATH_PROG([MMUX_PROGRAM_GROUPMOD],[$MMUX_PROGRAM_GROUPMOD],[/bin/false])
+
+dnl --------------------------------------------------------------------
+
+AC_ARG_WITH([install],
+  AS_HELP_STRING([--with-install],[select a pathname for the executable install]),
+  [MMUX_PROGRAM_INSTALL=$withval],
+  [MMUX_PROGRAM_INSTALL=/bin/install])
+
+dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
+dnl variable argument.
+AC_PATH_PROG([MMUX_PROGRAM_INSTALL],[$MMUX_PROGRAM_INSTALL],[/bin/false])
+
+
+#### let's go
 
 AC_CONFIG_FILES([Makefile]
   [meta/slackware/doinst.sh]

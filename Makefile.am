@@ -117,7 +117,7 @@ src/etc/bash_completion.d/$(am__dirstamp):
 	@: > src/etc/bash_completion.d/$(am__dirstamp)
 
 src/etc/bash_completion.d/mmux-unsafe-users-manager.bash: src/sbin/mmux-unsafe-users-manager $(completions_PREREQUISITES)
-	$(BASH_PROGRAM) src/sbin/mmux-unsafe-users-manager help print-completions-script >$(@)
+	$(MMUX_PROGRAM_BASH) src/sbin/mmux-unsafe-users-manager help print-completions-script >$(@)
 
 
 #### X11 interface
