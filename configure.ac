@@ -9,7 +9,7 @@ AC_INIT([MMUX Unsafe Users Management],MMUX_PACKAGE_VERSION,[mrc.mgg@gmail.com],
 MMUX_INIT
 dnl This is the revision number of this configure.ac
 AC_REVISION([0.1])
-AC_COPYRIGHT([Copyright (c) 2014, 2018, 2020 Marco Maggi <mrc.mgg@gmail.com>
+AC_COPYRIGHT([Copyright (c) 2014, 2018, 2020, 2023 Marco Maggi <mrc.mgg@gmail.com>
 
 This is  free software; you can  redistribute it and/or modify  it under
 the terms  of the GNU  General Public License  as published by  the Free
@@ -36,7 +36,7 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 
-MBFL_SETUP
+MBFL_SETUP(v3.0.0)
 
 
 #### external programs
