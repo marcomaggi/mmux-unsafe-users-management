@@ -57,7 +57,8 @@
 This document describes version @version{} of @value{PACKAGE}, a distribution of @gnu{} Bash
 scripts; it proposes a model to manage unsafe user profiles associated to safe user accounts on
 Slackware @gnu{}+Linux systems.  This package depends upon the external package Marco's Bash
-Functions Library (@mbfl{}), at least version @value{REQUIRED_MBFL_VERSION}.
+Functions Library (@mbfl{}), at least version @value{REQUIRED_MBFL_VERSION}.  This package expects
+the following packages to be installed: @gnu{} Coreutils, shadow.
 
 The package is distributed under the terms of the @gnu{} General Public License (@gpl{}).
 
@@ -139,7 +140,8 @@ Indexes
 This document describes version @version{} of @value{PACKAGE}, a distribution of @gnu{} Bash
 scripts; it proposes a model to manage unsafe user profiles associated to safe user accounts on
 Slackware @gnu{}+Linux systems.  This package depends upon the external package Marco's Bash
-Functions Library (@mbfl{}), at least version @value{REQUIRED_MBFL_VERSION}.
+Functions Library (@mbfl{}), at least version @value{REQUIRED_MBFL_VERSION}.  This package expects
+the following packages to be installed: @gnu{} Coreutils, shadow.
 
 @c page
 @node prerequisites
@@ -352,15 +354,73 @@ each line.
 Synopsis:
 
 @example
-@value{MANAGER_SCRIPT} [action] [options]
+@value{MANAGER_SCRIPT} [@var{ACTION}] [@var{OPTIONS}]
 @end example
 
 @menu
+* script setup::                Preparing the system.
 * script adding::               Adding unsafe users.
 * script deleting::             Deleting unsafe users.
 * script x-window::             Enabling/disabling X Window for unsafe users.
 * script normalisation::        Directories normalisation.
 @end menu
+
+@c page
+@node script setup
+@section Preparing the system
+
+
+The action command @code{setup} prepares the system for package usage, creating the required user
+groups and file system directories.
+
+Action command synopsis:
+
+@example
+@value{MANAGER_SCRIPT} setup [@var{OPTIONS}]
+@end example
+
+@noindent
+available options:
+
+@table @code
+@item --unsafe-home-base=@var{UNSAFE_HOME_BASE}
+Select a base directory for the unsafe users' home directories; defaults to
+@file{/home/unsafe-users}.
+@end table
+
+This package relies on the existence of two user groups, which are created by the @code{setup} action:
+
+@table @asis
+@item @code{mmux-safe-usrs}
+It is the group to which all, and only, the safe users allowed to use this package should belong to.
+This group can be added automatically by running the script @file{doinst.sh}.  By default, the
+installed @file{sudoers.d} file requires users to belong to the group @code{mmux-safe-usrs} to be
+able to run the script @value{MANAGER_SCRIPT_COMMAND}.
+
+@item @code{mmux-unsafe-usrs}
+It is the group to which all the safe and unsafe users should belong to.  This package:
+automatically adds unsafe users to this group at user--creation time; automatically removes unsafe
+users from this group at user--deletion time.  This package does @strong{not} add safe users to this
+group: it is responsibility of the system administrator to do it.
+
+This group of unsafe users can be used to configure file systems' quota and to restrict access to
+files.
+@end table
+
+All the scripts in this package should be installed with owner @samp{root}, group
+@code{mmux-safe-usrs} and permissions @samp{0750}; after package installation, these permissions can
+be adjusted by running the @file{doinst.sh} script.  We should see something like:
+
+@example
+$ ls -l /usr/sbin/mmux-unsafe-users-manager
+-rwxr-x--- 1 root mmux-safe-usrs 13K Jan  5  2020 /usr/sbin/mmux-unsafe-users-manager
+@end example
+
+The base directory for the unsafe user's home directories is created with:
+
+@example
+$SUDO /usr/bin/install -m 0750 -o root -g mmux-unsafe-usrs -d /home/unsafe-users
+@end example
 
 @c page
 @node script adding
@@ -372,22 +432,69 @@ The action command @code{add} adds an unsafe user associated to a selected safe 
 Action command synopsis:
 
 @example
-@value{MANAGER_SCRIPT} add UNSAFE_USERNAME --safe-user=SAFE-USERNAME [options]
+@value{MANAGER_SCRIPT} add [@var{OPTIONS}] [--] @var{UNSAFE_USERNAME}
 @end example
 
 @noindent
 available options:
 
 @table @code
-@item -H@var{UNSAFE_HOME_PARENT}
-@itemx --unsafe-home-parent=@var{UNSAFE_HOME_PARENT}
-Available for all the action @code{add}.  Select a parent directory for the unsafe users' home
-directories.  Defaults to @file{/home/unsafe-users}.
+@item --unsafe-home-base=@var{UNSAFE_HOME_BASE}
+Select a parent directory for the unsafe users' home directories.  The selected directory must
+already exist.  Defaults to @file{/home/unsafe-users}.
 
 @item -S@var{SAFE_USERNAME}
 @itemx --safe-user=@var{SAFE_USERNAME}
-Select the safe user associated to an unsafe user.
+Select the safe user associated to an unsafe user.  If this option is not used: the safe user name
+is the name of the effective user running the script, as determined by the @mbfl{} function
+@cfunc{mbfl_system_whoami}.
 @end table
+
+@c ------------------------------------------------------------------------
+
+Let's take as example an unsafe user @samp{marco-firefox} associated to a safe user @samp{marco};
+unsafe users accounts are created with the command:
+
+@example
+$SUDO /usr/sbin/useradd \
+   --base-dir     /home/unsafe-users                    \
+   --home         /home/unsafe-users/marco-firefox      \
+   --create-home                                        \
+   --user-group                                         \
+   --groups       mmux-unsafe-usrs,audio,video          \
+   --shell        /bin/false                            \
+   marco-firefox
+@end example
+
+@noindent
+notice that an unsafe user's account @strong{must not} be part of the normal users' groups (like
+@samp{users}); rather it should be part of the smallest possible number of groups needed to run the
+desired applications.
+
+The shell could be either @file{/bin/false} or @file{/sbin/nologin}; we opt for the former because
+it is more descriptive of a user account never available for log in (@file{/sbin/nologin} is more
+for temporarily disabled accounts).
+
+The access permissions of the unsafe user's home directory are modified as follows:
+
+@example
+$SUDO /bin/chmod u+rwx-s,g+rwxs,o-rwxs /home/unsafe-users/marco-firefox
+@end example
+
+@noindent
+the directory is setgid, so all the files created in it are automatically set to the group of the
+unsafe user.
+
+The safe user is added to the group of the unsafe user:
+
+@example
+$SUDO /usr/sbin/usermod marco --append --groups marco-firefox
+@end example
+
+@noindent
+this way the safe user can access the files in the home directory of the unsafe user.@footnote{We
+have to remember that this group addition will become effective after the safe user has logged out
+and logged back in.}
 
 @c page
 @node script deleting
@@ -399,7 +506,7 @@ The action command @code{del} deletes an unsafe user.
 Action command synopsis:
 
 @example
-@value{MANAGER_SCRIPT} del UNSAFE_USERNAME [options]
+@value{MANAGER_SCRIPT} del [@var{OPTIONS}] [--] @var{UNSAFE_USERNAME}
 @end example
 
 @c page
@@ -414,8 +521,8 @@ user X server.
 Action commands synopsis:
 
 @example
-@value{MANAGER_SCRIPT} enable-x  [options] [UNSAFE_USERNAME]
-@value{MANAGER_SCRIPT} disable-x [options] [UNSAFE_USERNAME]
+@value{MANAGER_SCRIPT} enable-x  [@var{OPTIONS}] [--] [@var{UNSAFE_USERNAME}]
+@value{MANAGER_SCRIPT} disable-x [@var{OPTIONS}] [--] [@var{UNSAFE_USERNAME}]
 @end example
 
 @c page
@@ -431,7 +538,7 @@ and access permissions.  The home directory of the unsafe users is determined by
 Action command synopsis:
 
 @example
-@value{MANAGER_SCRIPT} normalise [options]
+@value{MANAGER_SCRIPT} normalise [@var{OPTIONS}]
 @end example
 
 @noindent
@@ -510,7 +617,6 @@ line utility @value{MANAGER_SCRIPT_COMMAND}.
 
 @menu
 * model permissions::           Restricting usage of this package.
-* model creation::              How to add an unsafe user account.
 * model deletion::              How to delete an unsafe user account.
 * model xhost::                 Enabling and disabling running X
                                 applications.
@@ -524,92 +630,6 @@ line utility @value{MANAGER_SCRIPT_COMMAND}.
 The distribution comes with a script @file{meta/slackware/doinst.sh} that can be run to create the
 users' groups and adjust the access permissions of the installed files.  It is usable, in fact, as
 Slackware package installation script.
-
-This package relies on the existence of two user groups:
-
-@table @asis
-@item @code{mmux-safe-usrs}
-It is the group to which all, and only, the safe users allowed to use this package should belong to.
-This group can be added automatically by running the script @file{doinst.sh}.  This package does
-@strong{not} add users to this group: it is responsibility of the system administrator to do it.
-
-By default, the installed @file{sudoers.d} file requires users to belong to the group
-@code{mmux-safe-usrs} to be able to run the script @value{MANAGER_SCRIPT_COMMAND}.
-
-@item @code{mmux-unsafe-usrs}
-It is the group to which all the safe and unsafe users should belong to.  This group can be added
-automatically by running the script @file{doinst.sh}.  This package: automatically adds unsafe users
-to this group at user--creation time; automatically removes unsafe users from this group at
-user--deletion time.  This package does @strong{not} add safe users to this group: it is
-responsibility of the system administrator to do it.
-
-This group of unsafe users can be used to configure file systems' quota and to restrict access to
-files.
-@end table
-
-All the scripts in this package should be installed with owner @samp{root}, group
-@code{mmux-safe-usrs} and permissions @samp{0750}; after package installation, these permissions can
-be adjusted by running the @file{doinst.sh} script.  We should see something like:
-
-@example
-$ ls -l /usr/sbin/mmux-unsafe-users-manager
--rwxr-x--- 1 root mmux-safe-usrs 13K Jan  5  2020 /usr/sbin/mmux-unsafe-users-manager
-@end example
-
-@c page
-@node model creation
-@section How to add an unsafe user account
-
-
-The root directory of the unsafe user's home directory is created with:
-
-@example
-$SUDO /usr/bin/install -m 0750 -o root -g mmux-unsafe-usrs -d /home/unsafe-users
-@end example
-
-Let's take as example the unsafe user @samp{marco-firefox} associated to the safe user @samp{marco};
-unsafe users accounts are created with the command:
-
-@example
-$SUDO /usr/sbin/useradd \
-   --base-dir     /home/unsafe-users                    \
-   --home         /home/unsafe-users/marco-firefox      \
-   --create-home                                        \
-   --user-group                                         \
-   --groups       mmux-unsafe-usrs,audio,video          \
-   --shell        /bin/false                            \
-   marco-firefox
-@end example
-
-@noindent
-notice that an unsafe user's account @strong{must not} be part of the normal users' groups (like
-@samp{users}); rather it should be part of the smallest possible number of groups needed to run the
-desired applications.
-
-The shell could be either @file{/bin/false} or @file{/sbin/nologin}; we opt for the former because
-it is more descriptive of a user account never available for log in (@file{/sbin/nologin} is more
-for temporarily disabled accounts).
-
-The access permissions of the unsafe user's home directory are modified as follows:
-
-@example
-$SUDO /bin/chmod 2770 /home/unsafe-users/marco-firefox
-@end example
-
-@noindent
-the directory is setgid, so all the files created in it are automatically set to the group of the
-unsafe user.
-
-The safe user is added to the group of the unsafe user:
-
-@example
-$SUDO /usr/sbin/usermod marco --append --groups marco-firefox
-@end example
-
-@noindent
-this way the safe user can access the files in the home directory of the unsafe user.@footnote{We
-have to remember that this group addition will become effective after the safe user has logged out
-and logged back in.}
 
 @c page
 @node model deletion

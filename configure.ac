@@ -55,7 +55,7 @@ dnl --------------------------------------------------------------------
 AC_ARG_WITH([useradd],
   AS_HELP_STRING([--with-useradd],[select a pathname for the executable useradd]),
   [MMUX_PROGRAM_USERADD=$withval],
-  [MMUX_PROGRAM_USERADD=/usr/bin/useradd])
+  [MMUX_PROGRAM_USERADD=/usr/sbin/useradd])
 
 dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
 dnl variable argument.
@@ -66,7 +66,7 @@ dnl --------------------------------------------------------------------
 AC_ARG_WITH([userdel],
   AS_HELP_STRING([--with-userdel],[select a pathname for the executable userdel]),
   [MMUX_PROGRAM_USERDEL=$withval],
-  [MMUX_PROGRAM_USERDEL=/usr/bin/userdel])
+  [MMUX_PROGRAM_USERDEL=/usr/sbin/userdel])
 
 dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
 dnl variable argument.
@@ -77,7 +77,7 @@ dnl --------------------------------------------------------------------
 AC_ARG_WITH([usermod],
   AS_HELP_STRING([--with-usermod],[select a pathname for the executable usermod]),
   [MMUX_PROGRAM_USERMOD=$withval],
-  [MMUX_PROGRAM_USERMOD=/usr/bin/usermod])
+  [MMUX_PROGRAM_USERMOD=/usr/sbin/usermod])
 
 dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
 dnl variable argument.
@@ -88,7 +88,7 @@ dnl --------------------------------------------------------------------
 AC_ARG_WITH([groupadd],
   AS_HELP_STRING([--with-groupadd],[select a pathname for the executable groupadd]),
   [MMUX_PROGRAM_GROUPADD=$withval],
-  [MMUX_PROGRAM_GROUPADD=/usr/bin/groupadd])
+  [MMUX_PROGRAM_GROUPADD=/usr/sbin/groupadd])
 
 dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
 dnl variable argument.
@@ -99,7 +99,7 @@ dnl --------------------------------------------------------------------
 AC_ARG_WITH([groupdel],
   AS_HELP_STRING([--with-groupdel],[select a pathname for the executable groupdel]),
   [MMUX_PROGRAM_GROUPDEL=$withval],
-  [MMUX_PROGRAM_GROUPDEL=/usr/bin/groupdel])
+  [MMUX_PROGRAM_GROUPDEL=/usr/sbin/groupdel])
 
 dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
 dnl variable argument.
@@ -110,7 +110,7 @@ dnl --------------------------------------------------------------------
 AC_ARG_WITH([groupmod],
   AS_HELP_STRING([--with-groupmod],[select a pathname for the executable groupmod]),
   [MMUX_PROGRAM_GROUPMOD=$withval],
-  [MMUX_PROGRAM_GROUPMOD=/usr/bin/groupmod])
+  [MMUX_PROGRAM_GROUPMOD=/usr/sbin/groupmod])
 
 dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
 dnl variable argument.
