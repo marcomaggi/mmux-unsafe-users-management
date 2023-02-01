@@ -1169,7 +1169,7 @@ function determine_unsafe_users_list_file_var () {
 #### miscellaneous values validation
 
 function validate_safe_username () {
-    mbfl_mandatory_parameter(SAFE_USERNAME, 0, safe user name)
+    mbfl_mandatory_parameter(SAFE_USERNAME, 1, safe user name)
 
     if mbfl_string_is_username "$SAFE_USERNAME"
     then return_success
@@ -1180,7 +1180,7 @@ function validate_safe_username () {
 }
 
 function validate_unsafe_username () {
-    mbfl_mandatory_parameter(UNSAFE_USERNAME, 0, unsafe user name)
+    mbfl_mandatory_parameter(UNSAFE_USERNAME, 1, unsafe user name)
 
     if mbfl_string_is_username "$UNSAFE_USERNAME"
     then return_success
@@ -1203,7 +1203,7 @@ function validate_base_directory_for_unsafe_users_home_directories () {
 	    "$UNSAFE_USERS_HOME_BASE_DIRECTORY"
 	exit_because_invalid_base_directory_for_unsafe_users_home_directories
     fi
-    if ! mbfl_file_is_writable "$UNSAFE_USERS_HOME_BASE_DIRECTORY"
+    if ! mbfl_directory_is_writable "$UNSAFE_USERS_HOME_BASE_DIRECTORY"
     then
 	mbfl_message_error_printf \
 	    'the pathname for the base directory for unsafe users home directories is not writable: "%s"' \

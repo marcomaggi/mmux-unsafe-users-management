@@ -8,7 +8,7 @@ declare -r sysconfdir="@sysconfdir@"
 
 set -e
 
-"$sbindir"/mmux-unsafe-users-manager setup --verbose --show-program
+"$sbindir"/mmux-unsafe-users-manager setup --verbose
 
 exit 0
 
