@@ -131,7 +131,6 @@ self_PROGRAM_USERMOD='@MMUX_PROGRAM_USERMOD@'
 self_PROGRAM_GROUPADD='@MMUX_PROGRAM_GROUPADD@'
 self_PROGRAM_GROUPDEL='@MMUX_PROGRAM_GROUPDEL@'
 self_PROGRAM_GROUPMOD='@MMUX_PROGRAM_GROUPMOD@'
-self_PROGRAM_INSTALL='@MMUX_PROGRAM_INSTALL@'
 
 
 #### declare exit codes
@@ -139,7 +138,8 @@ self_PROGRAM_INSTALL='@MMUX_PROGRAM_INSTALL@'
 mbfl_main_declare_exit_code 2 invalid_safe_username
 mbfl_main_declare_exit_code 3 invalid_unsafe_username
 mbfl_main_declare_exit_code 4 invalid_base_directory_for_unsafe_users_home_directories
-mbfl_main_declare_exit_code 5 unable_to_determine_effective_username
+mbfl_main_declare_exit_code 5 unable_to_determine_safe_username
+mbfl_main_declare_exit_code 6 unable_to_determine_effective_username
 
 mbfl_main_declare_exit_code 10 unable_to_create_user_groups
 
@@ -189,18 +189,8 @@ function script_action_SETUP () {
 	exit_because_wrong_num_args
     fi
 
-    mbfl_local_varref(SUBSCRIPT_FLAGS)
-    mbfl_getopts_gather_mbfl_options_var mbfl_datavar(SUBSCRIPT_FLAGS)
-
     mbfl_program_declare_sudo_user root
-    if {
-	mbfl_location_enter
-	{
-	    mbfl_location_handler_suspend_testing
-	    mbfl_program_exec "$SCRIPT_ARGV0" sudo-setup "$script_option_UNSAFE_USERS_HOME_BASE_DIRECTORY" $SUBSCRIPT_FLAGS
-	}
-	mbfl_location_leave
-    }
+    if program_this_script sudo-setup "$script_option_UNSAFE_USERS_HOME_BASE_DIRECTORY"
     then exit_success
     else
     	mbfl_message_error 'performing system setup'
@@ -264,12 +254,9 @@ function script_action_ADD () {
 
     # Determine the unsafe username.
     {
+	mbfl_local_varref(UNSAFE_USERNAME)
 	mbfl_command_line_argument(UNSAFE_USERNAME, 0)
-	if ! mbfl_string_is_username "$UNSAFE_USERNAME"
-	then
-	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-	    exit_because_failure
-	fi
+	determine_unsafe_username_var mbfl_datavar(UNSAFE_USERNAME)
     }
 
     # Determine the base directory for unsafe users' home directories.
@@ -280,21 +267,11 @@ function script_action_ADD () {
 
     # Invoke this script itself to perform the operations.
     {
-	mbfl_local_varref(SUBSCRIPT_FLAGS)
-	mbfl_getopts_gather_mbfl_options_var mbfl_datavar(SUBSCRIPT_FLAGS)
-
 	mbfl_program_declare_sudo_user root
-	if {
-	    mbfl_location_enter
-	    {
-		mbfl_option_test_save; mbfl_location_handler mbfl_option_test_restore
-		mbfl_program_exec "$SCRIPT_ARGV0" sudo-add				\
-				  "$SAFE_USERNAME" "$UNSAFE_USERNAME"			\
-				  "$script_option_UNSAFE_USERS_HOME_BASE_DIRECTORY"	\
-				  $SUBSCRIPT_FLAGS
-	    }
-	    mbfl_location_leave
-	}
+	if program_this_script sudo-add							\
+			       "$SAFE_USERNAME"						\
+			       "$UNSAFE_USERNAME"					\
+			       "$script_option_UNSAFE_USERS_HOME_BASE_DIRECTORY"
 	then exit_success
 	else
     	    mbfl_message_error 'adding user'
@@ -328,7 +305,7 @@ function script_action_SUDO_ADD () {
     # Create the unsafe user.  We  assume there exists a group with the same  name of the safe user.
     # We create a group with the same name of the unsafe user.
     mbfl_message_verbose_printf 'creating unsafe user: "%s"\n' "$UNSAFE_USERNAME"
-    if ! mbfl_program_exec "$self_PROGRAM_USERADD"			\
+    if ! program_useradd						\
 	 --base-dir		"$UNSAFE_USERS_HOME_BASE_DIRECTORY"	\
 	 --home			"$UNSAFE_HOME"				\
 	 --create-home							\
@@ -348,7 +325,7 @@ function script_action_SUDO_ADD () {
     fi
 
     # Add safe user to the unsafe user's group.
-    if ! mbfl_program_exec "$self_PROGRAM_USERMOD" "$SAFE_USERNAME" --append --groups "$UNSAFE_USERNAME"
+    if ! program_usermod "$SAFE_USERNAME" --append --groups "$UNSAFE_USERNAME"
     then
 	mbfl_message_error "adding safe user to unsafe user's group"
     fi
@@ -365,7 +342,7 @@ This user profile was created by the package MMUX Unsafe Users Management.\n' "$
 #### deleting unsafe users
 
 function script_before_parsing_options_DEL () {
-    script_USAGE="usage: ${script_PROGNAME} del UNSAFE-USERNAME --safe-user=SAFE-USERNAME [options]"
+    script_USAGE="usage: ${script_PROGNAME} del UNSAFE-USERNAME [options]"
     script_DESCRIPTION='Remove an unsafe user.'
     mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
 }
@@ -376,29 +353,29 @@ function script_action_DEL () {
 	exit_because_wrong_num_args
     fi
 
-    mbfl_command_line_argument(UNSAFE_USERNAME, 0)
-    local SAFE_USERNAME=$script_option_SAFE_USERNAME
-    mbfl_local_varref(SUBSCRIPT_FLAGS)
+    # Determine the safe username.
+    {
+	mbfl_local_varref(SAFE_USERNAME)
+	determine_safe_username_var mbfl_datavar(SAFE_USERNAME)
+    }
 
-    if ! mbfl_string_is_username "$SAFE_USERNAME"
-    then
-	mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	exit_because_failure
-    fi
-    if ! mbfl_string_is_username "$UNSAFE_USERNAME"
-    then
-	mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-	exit_because_failure
-    fi
+    # Determine the unsafe username.
+    {
+	mbfl_local_varref(UNSAFE_USERNAME)
+	mbfl_command_line_argument(UNSAFE_USERNAME, 0)
+	determine_unsafe_username_var mbfl_datavar(UNSAFE_USERNAME)
+    }
 
-    mbfl_getopts_gather_mbfl_options_var mbfl_datavar(SUBSCRIPT_FLAGS)
-    mbfl_program_declare_sudo_user root
-    if mbfl_program_exec "$SCRIPT_ARGV0" sudo-del "$SAFE_USERNAME" "$UNSAFE_USERNAME" $SUBSCRIPT_FLAGS
-    then exit_success
-    else
-    	mbfl_message_error 'deleting user'
-    	exit_because_failure
-    fi
+    # Invoke this script itself to perform the operations.
+    {
+	mbfl_program_declare_sudo_user root
+	if program_this_script sudo-del "$SAFE_USERNAME" "$UNSAFE_USERNAME"
+	then exit_success
+	else
+    	    mbfl_message_error 'deleting user'
+    	    exit_because_failure
+	fi
+    }
 }
 
 ### ------------------------------------------------------------------------
@@ -417,16 +394,8 @@ function script_action_SUDO_DEL () {
     mbfl_command_line_argument(SAFE_USERNAME,   0)
     mbfl_command_line_argument(UNSAFE_USERNAME, 1)
 
-    if ! mbfl_string_is_username "$SAFE_USERNAME"
-    then
-	mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	exit_because_failure
-    fi
-    if ! mbfl_string_is_username "$UNSAFE_USERNAME"
-    then
-	mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-	exit_because_failure
-    fi
+    validate_safe_username "$SAFE_USERNAME"
+    validate_unsafe_username "$UNSAFE_USERNAME"
 
     if mbfl_option_interactive
     then
@@ -439,15 +408,20 @@ function script_action_SUDO_DEL () {
 	fi
     fi
 
-    mbfl_message_verbose_printf 'deleting user: "%s"\n' "$UNSAFE_USERNAME"
-    if ! mbfl_program_exec "$self_PROGRAM_USERDEL" "$UNSAFE_USERNAME" --remove
+    # When executing "userdel" with  the option "--remove": files in the  user's home directory will
+    # be removed along  with the home directory itself  and the user's mail spool.  Files located in
+    # other file systems will have to be searched for and deleted manually.
+    #
+    mbfl_message_verbose_printf 'deleting user (and its home directory): "%s"\n' "$UNSAFE_USERNAME"
+    if ! program_userdel --remove "$UNSAFE_USERNAME"
     then mbfl_message_error_printf 'removing unsafe user: "%s"' "$UNSAFE_USERNAME"
     fi
 
     # When "groupdel" removes the unsafe group: it also  removes it from the list of groups of which
     # the safe user is part.
+    #
     mbfl_message_verbose_printf 'deleting group: "%s"\n' "$UNSAFE_USERNAME"
-    if ! mbfl_program_exec "$self_PROGRAM_GROUPDEL" "$UNSAFE_USERNAME"
+    if ! program_groupdel "$UNSAFE_USERNAME"
     then mbfl_message_error_printf 'removing unsafe group: "%s"' "$UNSAFE_USERNAME"
     fi
 }
@@ -609,15 +583,8 @@ function script_action_NORMALISE () {
 
     # Execute the script itself, invoking the action "sudo-normalise".
     {
-	mbfl_local_varref(SUBSCRIPT_FLAGS)
-	mbfl_getopts_gather_mbfl_options_var mbfl_datavar(SUBSCRIPT_FLAGS)
-
 	mbfl_program_declare_sudo_user root
-	if {
-	    mbfl_option_test_save
-	    mbfl_program_exec "$SCRIPT_ARGV0" sudo-normalise $SUBSCRIPT_FLAGS '--' "$SAFE_USERNAME" "$UNSAFE_USERNAME"
-	    mbfl_option_test_restore
-	}
+	if program_this_script sudo-normalise "$SAFE_USERNAME" "$UNSAFE_USERNAME"
 	then exit_success
 	else
     	    mbfl_message_error 'normalising unsafe users directories'
@@ -857,7 +824,7 @@ function setup_create_safe_users_group () {
     local -r TEMPLATE='creating safe users groups: "%s"'
 
     mbfl_message_verbose_printf "${TEMPLATE}\n" "$SAFE_USERS_GROUP"
-    if ! mbfl_program_exec "$self_PROGRAM_GROUPADD" --force "$SAFE_USERS_GROUP"
+    if ! program_groupadd --system --force "$SAFE_USERS_GROUP"
     then
 	mbfl_message_error_printf "$TEMPLATE" "$SAFE_USERS_GROUP"
 	exit_because_unable_to_create_user_groups
@@ -867,7 +834,7 @@ function setup_create_unsafe_users_group () {
     local -r TEMPLATE='creating unsafe users groups: "%s"'
 
     mbfl_message_verbose_printf "${TEMPLATE}\n" "$UNSAFE_USERS_GROUP"
-    if ! mbfl_program_exec "$self_PROGRAM_GROUPADD" --force "$UNSAFE_USERS_GROUP"
+    if ! program_groupadd --system --force "$UNSAFE_USERS_GROUP"
     then
 	mbfl_message_error_printf "$TEMPLATE" "$UNSAFE_USERS_GROUP"
 	exit_because_unable_to_create_user_groups
@@ -1072,7 +1039,7 @@ function setup_p_normalise_file () {
 	    fi
 	}
     else
-	mbfl_message_error_printf "file does not exist\n"
+	mbfl_message_error_printf "file does not exist"
 	mbfl_message_error_printf "$TEMPLATE" "$FILE_DESCRIPTION" "$FILE_PATHNAME"
 	exit_because_failure
     fi
@@ -1097,7 +1064,7 @@ function determine_safe_username_var () {
 	return_success
     else
 	mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	exit_because_failure
+	exit_because_invalid_safe_username
     fi
 }
 
@@ -1118,6 +1085,19 @@ function determine_effective_user_name_var () {
     then
 	mbfl_message_error_printf 'unable to determine effective user with "whoami"'
 	exit_because_unable_to_determine_effective_username
+    fi
+}
+
+# Determine the unsafe username.  We expect the  given UNSAFE_USERNAME variable to be already set to
+# a possible valid name, probably from an argument on the command line.
+#
+function determine_unsafe_username_var () {
+    mbfl_mandatory_nameref_parameter(UNSAFE_USERNAME, 1, result variable)
+
+    if ! mbfl_string_is_username "$UNSAFE_USERNAME"
+    then
+	mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
+	exit_because_invalid_unsafe_username
     fi
 }
 
@@ -1216,13 +1196,54 @@ function validate_base_directory_for_unsafe_users_home_directories () {
 
 #### interfaces to external programs
 
+function program_this_script () {
+    mbfl_mandatory_parameter(ACTION, 1, action)
+    shift
+
+    mbfl_local_varref(SUBSCRIPT_FLAGS)
+    mbfl_getopts_gather_mbfl_options_var mbfl_datavar(SUBSCRIPT_FLAGS)
+
+    mbfl_location_enter
+    {
+	mbfl_location_handler_suspend_testing
+	mbfl_program_exec "$SCRIPT_ARGV0" "$ACTION" $SUBSCRIPT_FLAGS '--' "$@"
+    }
+    mbfl_location_leave
+}
+
+### ------------------------------------------------------------------------
+
+function program_useradd () {
+    mbfl_program_exec "$self_PROGRAM_USERADD" "$@"
+}
+function program_usermod () {
+    mbfl_program_exec "$self_PROGRAM_USERMOD" "$@"
+}
+function program_userdel () {
+    mbfl_program_exec "$self_PROGRAM_USERDEL" "$@"
+}
+
+### ------------------------------------------------------------------------
+
+function program_groupadd () {
+    mbfl_program_exec "$self_PROGRAM_GROUPADD" "$@"
+}
+function program_groupmod () {
+    mbfl_program_exec "$self_PROGRAM_GROUPMOD" "$@"
+}
+function program_groupdel () {
+    mbfl_program_exec "$self_PROGRAM_GROUPDEL" "$@"
+}
+
+### ------------------------------------------------------------------------
+
 function program_install () {
     local INSTALL_FLAGS
 
     if mbfl_option_verbose_program
     then INSTALL_FLAGS+=' --verbose'
     fi
-    mbfl_program_exec "$self_PROGRAM_INSTALL" $INSTALL_FLAGS "$@"
+    mbfl_program_exec "$mbfl_PROGRAM_INSTALL" $INSTALL_FLAGS "$@"
 }
 
 

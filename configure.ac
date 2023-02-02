@@ -116,17 +116,6 @@ dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
 dnl variable argument.
 AC_PATH_PROG([MMUX_PROGRAM_GROUPMOD],[$MMUX_PROGRAM_GROUPMOD],[/bin/false])
 
-dnl --------------------------------------------------------------------
-
-AC_ARG_WITH([install],
-  AS_HELP_STRING([--with-install],[select a pathname for the executable install]),
-  [MMUX_PROGRAM_INSTALL=$withval],
-  [MMUX_PROGRAM_INSTALL=/bin/install])
-
-dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
-dnl variable argument.
-AC_PATH_PROG([MMUX_PROGRAM_INSTALL],[$MMUX_PROGRAM_INSTALL],[/bin/false])
-
 
 #### let's go
 
