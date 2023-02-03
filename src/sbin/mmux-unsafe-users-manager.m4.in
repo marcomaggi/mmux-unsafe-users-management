@@ -441,27 +441,14 @@ function script_action_ENABLE_X () {
 	exit_because_wrong_num_args
     fi
 
-    mbfl_local_varref(XHOST)
-    mbfl_program_found_var mbfl_datavar(XHOST)	xhost || exit $?
-
-    mbfl_message_verbose_printf 'acquire safe username\n'
-    mbfl_local_varref(SAFE_USERNAME, "$script_option_SAFE_USERNAME")
-    if mbfl_string_is_empty "$SAFE_USERNAME"
-    then mbfl_system_whoami_var mbfl_datavar(SAFE_USERNAME)
-    fi
-    if mbfl_string_is_empty "$SAFE_USERNAME"
-    then
-	mbfl_message_error 'missing safe username option selection'
-	exit_because_failure
-    fi
-    if ! mbfl_string_is_username "$SAFE_USERNAME"
-    then
-	mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	exit_because_failure
-    fi
+    # Determine the safe username.
+    {
+	mbfl_local_varref(SAFE_USERNAME)
+	determine_safe_username_var mbfl_datavar(SAFE_USERNAME)
+    }
 
     mbfl_message_verbose_printf 'enabling X host access control\n'
-    if ! mbfl_program_exec "$XHOST" -
+    if ! program_xhost -
     then
 	mbfl_message_error 'enabling X host access control'
 	exit_because_failure
@@ -481,7 +468,7 @@ function script_action_ENABLE_X () {
 
 	mbfl_message_verbose_printf 'enabling unsafe user running X applications: "%s"\n' "$UNSAFE_USERNAME"
 
-	if ! mbfl_program_exec "$XHOST" "+local:$UNSAFE_USERNAME"
+	if ! program_xhost "+local:$UNSAFE_USERNAME"
 	then
 	    mbfl_message_error 'enabling unsafe user running X applications'
 	    exit_because_failure
@@ -504,24 +491,11 @@ function script_action_DISABLE_X () {
 	exit_because_wrong_num_args
     fi
 
-    mbfl_local_varref(XHOST)
-    mbfl_program_found_var mbfl_datavar(XHOST)	xhost || exit $?
-
-    mbfl_message_verbose_printf 'acquire safe username\n'
-    mbfl_local_varref(SAFE_USERNAME, "$script_option_SAFE_USERNAME")
-    if mbfl_string_is_empty "$SAFE_USERNAME"
-    then mbfl_system_whoami_var mbfl_datavar(SAFE_USERNAME)
-    fi
-    if mbfl_string_is_empty "$SAFE_USERNAME"
-    then
-	mbfl_message_error 'missing safe username option selection'
-	exit_because_failure
-    fi
-    if ! mbfl_string_is_username "$SAFE_USERNAME"
-    then
-	mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
-	exit_because_failure
-    fi
+    # Determine the safe username.
+    {
+	mbfl_local_varref(SAFE_USERNAME)
+	determine_safe_username_var mbfl_datavar(SAFE_USERNAME)
+    }
 
     mbfl_local_varref(UNSAFE_USERS_LIST_FILE)
     determine_unsafe_users_list_file_var mbfl_datavar(UNSAFE_USERS_LIST_FILE) "$SAFE_USERNAME"
@@ -535,9 +509,9 @@ function script_action_DISABLE_X () {
 	    exit_because_failure
 	fi
 
-	mbfl_message_verbose_printf 'enabling unsafe user running X applications: "%s"\n' "$UNSAFE_USERNAME"
+	mbfl_message_verbose_printf 'disabling unsafe user running X applications: "%s"\n' "$UNSAFE_USERNAME"
 
-	if ! mbfl_program_exec "$XHOST" "-local:$UNSAFE_USERNAME"
+	if ! program_xhost "-local:$UNSAFE_USERNAME"
 	then
 	    mbfl_message_error 'enabling unsafe user running X applications'
 	    exit_because_failure
@@ -563,21 +537,17 @@ function script_action_NORMALISE () {
 	exit_because_wrong_num_args
     fi
 
-    mbfl_local_varref(SAFE_USERNAME)
-    determine_safe_username_var mbfl_datavar(SAFE_USERNAME)
+    # Determine the safe username.
+    {
+	mbfl_local_varref(SAFE_USERNAME)
+	determine_safe_username_var mbfl_datavar(SAFE_USERNAME)
+    }
 
-    # Determine the unsafe username.
+    # Determine the unsafe username.  This is optional: we accept an empty string as value.
     {
 	mbfl_local_varref(UNSAFE_USERNAME, "$script_option_UNSAFE_USERNAME")
 	if mbfl_string_is_not_empty "$UNSAFE_USERNAME"
-	then
-	    if ! mbfl_string_is_username "$UNSAFE_USERNAME"
-	    then
-		mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
-		exit_because_failure
-	    fi
-	    mbfl_message_verbose_printf 'the selected unsafe user name is: "%s"\n' "$UNSAFE_USERNAME"
-	    mbfl_message_verbose_printf 'unsafe user selected, so ignoring the safe user name: "%s"\n'      "$SAFE_USERNAME"
+	then determine_unsafe_username_var mbfl_datavar(UNSAFE_USERNAME)
 	fi
     }
 
@@ -596,7 +566,7 @@ function script_action_NORMALISE () {
 ### ------------------------------------------------------------------------
 
 function script_before_parsing_options_SUDO_NORMALISE () {
-    script_USAGE="usage: ${script_PROGNAME} sudo-normalise [options] SAFE_USERNAME UNSAFE_USERNAME"
+    script_USAGE="usage: ${script_PROGNAME} sudo-normalise [options] [--] SAFE_USERNAME [UNSAFE_USERNAME]"
     script_DESCRIPTION='Internal action.'
 }
 function script_action_SUDO_NORMALISE () {
@@ -616,7 +586,7 @@ function script_action_SUDO_NORMALISE () {
 	fi
     }
 
-    # Acquire the unsafe username.
+    # Acquire the unsafe username.  This is optional: we accept an empty string.
     {
 	mbfl_command_line_argument(UNSAFE_USERNAME, 1)
 	if mbfl_string_is_not_empty "$UNSAFE_USERNAME"
@@ -632,7 +602,7 @@ function script_action_SUDO_NORMALISE () {
     # Perform the requested normalisation.
     {
 	if mbfl_string_is_empty "$UNSAFE_USERNAME"
-	then normalise_unsafe_users_home_directories     "$SAFE_USERNAME"
+	then normalise_all_unsafe_users_home_directories "$SAFE_USERNAME"
 	else normalise_single_unsafe_user_home_directory "$SAFE_USERNAME" "$UNSAFE_USERNAME"
 	fi
     }
@@ -640,7 +610,7 @@ function script_action_SUDO_NORMALISE () {
 
 ### ------------------------------------------------------------------------
 
-function normalise_unsafe_users_home_directories () {
+function normalise_all_unsafe_users_home_directories () {
     mbfl_mandatory_parameter(SAFE_USERNAME, 1, safe user name)
 
     mbfl_local_varref(UNSAFE_USERS_LIST_FILE)
@@ -651,12 +621,16 @@ function normalise_unsafe_users_home_directories () {
     {
 	mbfl_location_enter
 	{
-	    mbfl_option_test_save; mbfl_location_handler mbfl_option_test_restore
+	    mbfl_location_handler_suspend_testing
 	    mbfl_file_read "$UNSAFE_USERS_LIST_FILE"
 	}
 	mbfl_location_leave
     } | while read UNSAFE_USERNAME
-    do normalise_single_unsafe_user_home_directory "$SAFE_USERNAME" "$UNSAFE_USERNAME"
+    do
+	if mbfl_string_is_username "$UNSAFE_USERNAME"
+	then normalise_single_unsafe_user_home_directory "$SAFE_USERNAME" "$UNSAFE_USERNAME"
+	else mbfl_message_warning_printf 'invalid unsafe username from list file: "%s"' "$UNSAFE_USERNAME"
+	fi
     done
 }
 
@@ -1244,6 +1218,13 @@ function program_install () {
     then INSTALL_FLAGS+=' --verbose'
     fi
     mbfl_program_exec "$mbfl_PROGRAM_INSTALL" $INSTALL_FLAGS "$@"
+}
+
+function program_xhost () {
+    mbfl_local_varref(XHOST)
+    mbfl_program_found_var mbfl_datavar(XHOST)	xhost || exit $?
+
+    mbfl_program_exec "$XHOST" "$@"
 }
 
 
