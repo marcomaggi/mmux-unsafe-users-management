@@ -1,6 +1,10 @@
 # doinst.sh.in --
 #
 
+declare -r prefix="@prefix@"
+declare -r exec_prefix="@exec_prefix@"
+declare -r sbindir="@sbindir@"
+
 exec "$sbindir"/mmux-unsafe-users-manager setup --verbose
 
 ### end of file
