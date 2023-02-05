@@ -447,33 +447,32 @@ function script_action_ENABLE_X () {
 	determine_safe_username_var mbfl_datavar(SAFE_USERNAME)
     }
 
-    mbfl_message_verbose_printf 'enabling X host access control\n'
-    if ! program_xhost -
-    then
-	mbfl_message_error 'enabling X host access control'
-	exit_because_failure
-    fi
-
-    mbfl_local_varref(UNSAFE_USERS_LIST_FILE)
-    determine_unsafe_users_list_file_var mbfl_datavar(UNSAFE_USERS_LIST_FILE) "$SAFE_USERNAME"
-
-    local UNSAFE_USERNAME
-    mbfl_file_read "$UNSAFE_USERS_LIST_FILE" | while read UNSAFE_USERNAME
-    do
-	if ! mbfl_string_is_username "$UNSAFE_USERNAME"
+    # Enable X host access control.
+    {
+	mbfl_message_verbose_printf 'enabling X host access control\n'
+	if ! program_xhost -
 	then
-	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
+	    mbfl_message_error 'enabling X host access control'
 	    exit_because_failure
 	fi
+    }
 
-	mbfl_message_verbose_printf 'enabling unsafe user running X applications: "%s"\n' "$UNSAFE_USERNAME"
+    # Enable X access to the unsafe users.
+    {
+	mbfl_local_index_array_varref(UNSAFE_USERNAMES)
+	local -i i
+	local XHOST_ARG
 
-	if ! program_xhost "+local:$UNSAFE_USERNAME"
-	then
-	    mbfl_message_error 'enabling unsafe user running X applications'
-	    exit_because_failure
-	fi
-    done
+	unsafe_users_list_load_file mbfl_datavar(UNSAFE_USERNAMES)
+	for ((i=0; i < ${#UNSAFE_USERNAMES[@]}; ++i))
+	do
+	    printf -v XHOST_ARG '+local:%s' "${UNSAFE_USERNAMES[$i]}"
+	    if program_xhost "$XHOST_ARG"
+	    then mbfl_message_verbose_printf        'enabled unsafe user running X applications: "%s"\n' "${UNSAFE_USERNAMES[$i]}"
+	    else mbfl_message_warning_printf 'error enabling unsafe user running X applications: "%s"'   "${UNSAFE_USERNAMES[$i]}"
+	    fi
+	done
+    }
 }
 
 
@@ -497,26 +496,32 @@ function script_action_DISABLE_X () {
 	determine_safe_username_var mbfl_datavar(SAFE_USERNAME)
     }
 
-    mbfl_local_varref(UNSAFE_USERS_LIST_FILE)
-    determine_unsafe_users_list_file_var mbfl_datavar(UNSAFE_USERS_LIST_FILE) "$SAFE_USERNAME"
-
-    local UNSAFE_USERNAME
-    mbfl_file_read "$UNSAFE_USERS_LIST_FILE" | while read UNSAFE_USERNAME
-    do
-	if ! mbfl_string_is_username "$UNSAFE_USERNAME"
+    # Disable X host access control.
+    {
+	mbfl_message_verbose_printf 'enabling X host access control\n'
+	if ! program_xhost -
 	then
-	    mbfl_message_error_printf 'invalid unsafe username: "%s"' "$UNSAFE_USERNAME"
+	    mbfl_message_error 'enabling X host access control'
 	    exit_because_failure
 	fi
+    }
 
-	mbfl_message_verbose_printf 'disabling unsafe user running X applications: "%s"\n' "$UNSAFE_USERNAME"
+    # Disable X access to the unsafe users.
+    {
+	mbfl_local_index_array_varref(UNSAFE_USERNAMES)
+	local -i i
+	local XHOST_ARG
 
-	if ! program_xhost "-local:$UNSAFE_USERNAME"
-	then
-	    mbfl_message_error 'enabling unsafe user running X applications'
-	    exit_because_failure
-	fi
-    done
+	unsafe_users_list_load_file mbfl_datavar(UNSAFE_USERNAMES)
+	for ((i=0; i < ${#UNSAFE_USERNAMES[@]}; ++i))
+	do
+	    printf -v XHOST_ARG '-local:%s' "${UNSAFE_USERNAMES[$i]}"
+	    if program_xhost "$XHOST_ARG"
+	    then mbfl_message_verbose_printf        'disabled unsafe user running X applications: "%s"\n' "${UNSAFE_USERNAMES[$i]}"
+	    else mbfl_message_warning_printf 'error enabling unsafe user running X applications: "%s"'   "${UNSAFE_USERNAMES[$i]}"
+	    fi
+	done
+    }
 }
 
 
@@ -614,7 +619,7 @@ function normalise_all_unsafe_users_home_directories () {
     mbfl_mandatory_parameter(SAFE_USERNAME, 1, safe user name)
 
     mbfl_local_varref(UNSAFE_USERS_LIST_FILE)
-    determine_unsafe_users_list_file_var mbfl_datavar(UNSAFE_USERS_LIST_FILE) "$SAFE_USERNAME"
+    unsafe_users_list_determine_file_pathname_var mbfl_datavar(UNSAFE_USERS_LIST_FILE) "$SAFE_USERNAME"
     mbfl_message_verbose_printf 'reading unsafe users list from: "%s"\n' "$UNSAFE_USERS_LIST_FILE"
 
     local UNSAFE_USERNAME
@@ -1101,7 +1106,10 @@ function determine_base_directory_for_unsafe_users_home_directories_var () {
     return_success
 }
 
-function determine_unsafe_users_list_file_var () {
+
+#### unsafe usernames file
+
+function unsafe_users_list_determine_file_pathname_var () {
     mbfl_mandatory_nameref_parameter(UNSAFE_USERS_LIST_FILE, 1, result variable)
     mbfl_mandatory_parameter(SAFE_USERNAME,                  2, safe user name)
     mbfl_local_varref(SAFE_USER_INDEX)
@@ -1110,6 +1118,7 @@ function determine_unsafe_users_list_file_var () {
     read_passwd_data
     mbfl_system_passwd_find_entry_by_name_var mbfl_datavar(SAFE_USER_INDEX) "$SAFE_USERNAME"
     mbfl_system_passwd_get_dir_var            mbfl_datavar(SAFE_USERHOME)   "$SAFE_USER_INDEX"
+    mbfl_message_verbose_printf 'the safe user home directory is: "%s"\n' "$SAFE_USERHOME"
 
     printf -v UNSAFE_USERS_LIST_FILE '%s/.mmux-unsafe-users' "$SAFE_USERHOME"
     if ! mbfl_file_is_readable "$UNSAFE_USERS_LIST_FILE"
@@ -1117,6 +1126,34 @@ function determine_unsafe_users_list_file_var () {
 	mbfl_message_error_printf 'unexistent or unreadable unsafe users list file: "%s"' "$UNSAFE_USERS_LIST_FILE"
 	exit_because_failure
     fi
+}
+
+function unsafe_users_list_load_file () {
+    mbfl_mandatory_nameref_parameter(UNSAFE_USERNAMES, 1, array to be filled with usernames)
+    mbfl_local_varref(UNSAFE_USERS_LIST_FILE)
+    unsafe_users_list_determine_file_pathname_var mbfl_datavar(UNSAFE_USERS_LIST_FILE) "$SAFE_USERNAME"
+
+    mbfl_message_verbose_printf 'loading unsafe users list file: "%s"\n' "$UNSAFE_USERS_LIST_FILE"
+
+    local USERNAME
+    local -i i=0
+
+    mbfl_location_enter
+    {
+	mbfl_fd_open_input 10 "$UNSAFE_USERS_LIST_FILE"
+	mbfl_location_handler 'mbfl_fd_close 10'
+	while read -u 10 USERNAME
+	do
+	    if mbfl_string_is_username "$USERNAME"
+	    then
+		UNSAFE_USERNAMES[$i]=$USERNAME
+		let ++i
+	    else mbfl_message_warning_printf 'invalid unsafe username from file: "%s"' "$USERNAME"
+	    fi
+	done
+	mbfl_location_leave
+    }
+    mbfl_message_verbose_printf 'there are %d unsafe users\n' ${#UNSAFE_USERNAMES[@]}
 }
 
 
