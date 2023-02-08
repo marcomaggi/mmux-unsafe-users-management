@@ -685,7 +685,7 @@ function normalise_single_unsafe_user_home_directory () {
 	fi
     else
 	mbfl_message_error_printf 'unexistent unsafe user directory: "%s"' "$UNSAFE_USERHOME"
-	continue
+	return_failure
     fi
 
     local FIND
@@ -713,7 +713,6 @@ function normalise_single_unsafe_user_home_directory () {
     mbfl_message_verbose_printf 'changing directory permissions to: "%s"\n' "$DIRECTORY_PERMISSIONS"
     mbfl_message_verbose_printf 'changing file permissions to: "%s"\n'      "$FILE_PERMISSIONS"
 
-    #mbfl_program_declare_sudo_user "$UNSAFE_USERNAME"
     if ! mbfl_program_exec "$FIND" "$UNSAFE_USERHOME"						         \
 	 '(' -type d -and -name '{git}'          -and -prune ')'				    -or  \
 	 '(' -type d -and -name '{archives}'     -and -prune ')'				    -or  \
