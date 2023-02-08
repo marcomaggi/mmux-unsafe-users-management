@@ -4,41 +4,8 @@
 declare -r prefix="@prefix@"
 declare -r exec_prefix="@exec_prefix@"
 declare -r sbindir="@sbindir@"
-declare -r sysconfdir="@sysconfdir@"
 
-set -e
-
-# The group name of safe users, at most 16 characters.
-#       0123456789012345
-declare -r SAFEGRP=mmux-safe-usrs
-
-# The group name of UNsafe users, at most 16 characters.
-#         0123456789012345
-declare -r UNSAFEGRP=mmux-unsafe-usrs
-
-/bin/chmod 0400 "$sysconfdir"/sudoers.d/mmux-unsafe-users-management.conf
-
-/usr/sbin/groupadd --force $SAFEGRP
-/usr/sbin/groupadd --force $UNSAFEGRP
-
-for item in \
-    "$sbindir"/mmux-unsafe-users-manager			\
-    "$sysconfdir"/mmux/xinitrc.d/mmux-unsafe-users-management.sh
-do
-    /bin/chgrp $SAFEGRP $item --verbose
-    /bin/chmod o-rwx $item --verbose
-done
-unset item
-
-if test -d /home/unsafe-users
-then
-    /bin/chmod 0750        /home/unsafe-users
-    /bin/chown root        /home/unsafe-users
-    /bin/chgrp $UNSAFEGRP  /home/unsafe-users
-else /usr/bin/install -m 0750 -o root -g $SAFEGRP /home/unsafe-users
-fi
-
-exit 0
+exec "$sbindir"/mmux-unsafe-users-manager setup --verbose
 
 ### end of file
 # Local Variables:

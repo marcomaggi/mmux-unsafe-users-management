@@ -9,7 +9,7 @@ AC_INIT([MMUX Unsafe Users Management],MMUX_PACKAGE_VERSION,[mrc.mgg@gmail.com],
 MMUX_INIT
 dnl This is the revision number of this configure.ac
 AC_REVISION([0.1])
-AC_COPYRIGHT([Copyright (c) 2014, 2018, 2020 Marco Maggi <mrc.mgg@gmail.com>
+AC_COPYRIGHT([Copyright (c) 2014, 2018, 2020, 2023 Marco Maggi <mrc.mgg@gmail.com>
 
 This is  free software; you can  redistribute it and/or modify  it under
 the terms  of the GNU  General Public License  as published by  the Free
@@ -36,7 +36,7 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 
-MBFL_SETUP
+MBFL_SETUP(v3.0.0)
 
 
 #### external programs
@@ -55,7 +55,7 @@ dnl --------------------------------------------------------------------
 AC_ARG_WITH([useradd],
   AS_HELP_STRING([--with-useradd],[select a pathname for the executable useradd]),
   [MMUX_PROGRAM_USERADD=$withval],
-  [MMUX_PROGRAM_USERADD=/usr/bin/useradd])
+  [MMUX_PROGRAM_USERADD=/usr/sbin/useradd])
 
 dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
 dnl variable argument.
@@ -66,7 +66,7 @@ dnl --------------------------------------------------------------------
 AC_ARG_WITH([userdel],
   AS_HELP_STRING([--with-userdel],[select a pathname for the executable userdel]),
   [MMUX_PROGRAM_USERDEL=$withval],
-  [MMUX_PROGRAM_USERDEL=/usr/bin/userdel])
+  [MMUX_PROGRAM_USERDEL=/usr/sbin/userdel])
 
 dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
 dnl variable argument.
@@ -77,7 +77,7 @@ dnl --------------------------------------------------------------------
 AC_ARG_WITH([usermod],
   AS_HELP_STRING([--with-usermod],[select a pathname for the executable usermod]),
   [MMUX_PROGRAM_USERMOD=$withval],
-  [MMUX_PROGRAM_USERMOD=/usr/bin/usermod])
+  [MMUX_PROGRAM_USERMOD=/usr/sbin/usermod])
 
 dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
 dnl variable argument.
@@ -88,7 +88,7 @@ dnl --------------------------------------------------------------------
 AC_ARG_WITH([groupadd],
   AS_HELP_STRING([--with-groupadd],[select a pathname for the executable groupadd]),
   [MMUX_PROGRAM_GROUPADD=$withval],
-  [MMUX_PROGRAM_GROUPADD=/usr/bin/groupadd])
+  [MMUX_PROGRAM_GROUPADD=/usr/sbin/groupadd])
 
 dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
 dnl variable argument.
@@ -99,7 +99,7 @@ dnl --------------------------------------------------------------------
 AC_ARG_WITH([groupdel],
   AS_HELP_STRING([--with-groupdel],[select a pathname for the executable groupdel]),
   [MMUX_PROGRAM_GROUPDEL=$withval],
-  [MMUX_PROGRAM_GROUPDEL=/usr/bin/groupdel])
+  [MMUX_PROGRAM_GROUPDEL=/usr/sbin/groupdel])
 
 dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
 dnl variable argument.
@@ -110,22 +110,11 @@ dnl --------------------------------------------------------------------
 AC_ARG_WITH([groupmod],
   AS_HELP_STRING([--with-groupmod],[select a pathname for the executable groupmod]),
   [MMUX_PROGRAM_GROUPMOD=$withval],
-  [MMUX_PROGRAM_GROUPMOD=/usr/bin/groupmod])
+  [MMUX_PROGRAM_GROUPMOD=/usr/sbin/groupmod])
 
 dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
 dnl variable argument.
 AC_PATH_PROG([MMUX_PROGRAM_GROUPMOD],[$MMUX_PROGRAM_GROUPMOD],[/bin/false])
-
-dnl --------------------------------------------------------------------
-
-AC_ARG_WITH([install],
-  AS_HELP_STRING([--with-install],[select a pathname for the executable install]),
-  [MMUX_PROGRAM_INSTALL=$withval],
-  [MMUX_PROGRAM_INSTALL=/bin/install])
-
-dnl Remember  that  "AC_PATH_PROG"  already  calls  "AC_SUBST"  for  its
-dnl variable argument.
-AC_PATH_PROG([MMUX_PROGRAM_INSTALL],[$MMUX_PROGRAM_INSTALL],[/bin/false])
 
 
 #### let's go
