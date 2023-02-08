@@ -935,15 +935,19 @@ function setup_p_create_directory () {
     local -r TEMPLATE='creating %b: "%s"'
 
     mbfl_message_verbose_printf "${TEMPLATE}\n" "$DIRECTORY_DESCRIPTION" "$DIRECTORY_PATHNAME"
-    mbfl_message_verbose_printf 'directory owner: "%s"' "$DIRECTORY_OWNER"
-    mbfl_message_verbose_printf 'directory group: "%s"' "$DIRECTORY_GROUP"
-    mbfl_message_verbose_printf 'directory mode: "%s"'  "$DIRECTORY_MODE"
+    mbfl_message_verbose_printf 'directory owner: "%s"\n' "$DIRECTORY_OWNER"
+    mbfl_message_verbose_printf 'directory group: "%s"\n' "$DIRECTORY_GROUP"
+    mbfl_message_verbose_printf 'directory mode: "%s"\n'  "$DIRECTORY_MODE"
 
     local INSTALL_FLAGS
-    printf -v INSTALL_FLAGS '--mode=%s --owner=%s --group=%s --directory' \
-	   "$DIRECTORY_MODE" "$DIRECTORY_OWNER" "$DIRECTORY_GROUP"
+    if ! printf -v INSTALL_FLAGS -- '--mode=%s --owner=%s --group=%s --directory' \
+	 "$DIRECTORY_MODE" "$DIRECTORY_OWNER" "$DIRECTORY_GROUP"
+    then
+	mbfl_message_error_printf "$TEMPLATE" "$DIRECTORY_DESCRIPTION" "$DIRECTORY_PATHNAME"
+	exit_because_failure
+    fi
 
-    if program_install $INSTALL_FLAGS '--' "$DIRECTORY_PATHNAME"
+    if ! program_install $INSTALL_FLAGS '--' "$DIRECTORY_PATHNAME"
     then
 	mbfl_message_error_printf "$TEMPLATE" "$DIRECTORY_DESCRIPTION" "$DIRECTORY_PATHNAME"
 	exit_because_failure
