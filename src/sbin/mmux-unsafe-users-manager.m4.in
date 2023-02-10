@@ -988,10 +988,10 @@ function setup_p_normalise_directory () {
 	    fi
 	}
     else setup_p_create_directory			\
-	     "$DIRECTOR_PATHNAME"			\
-	     "$DIRECTOR_OWNER"				\
-	     "$DIRECTOR_GROUP"				\
-	     "$DIRECTOR_MODE"
+	     "$DIRECTORY_PATHNAME"			\
+	     "$DIRECTORY_OWNER"				\
+	     "$DIRECTORY_GROUP"				\
+	     "$DIRECTORY_MODE"
     fi
 }
 
