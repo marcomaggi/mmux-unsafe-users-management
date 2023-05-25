@@ -2,7 +2,7 @@ dnl @configure_input@
 dnl
 
 AC_PREREQ([2.69])
-MMUX_PKG_VERSIONS([0],[4],[0],[devel.2],[noarch])
+MMUX_PKG_VERSIONS([0],[5],[0],[devel.0],[noarch])
 AC_INIT([MMUX Unsafe Users Management],MMUX_PACKAGE_VERSION,[mrc.mgg@gmail.com],
    [mmux-unsafe-users-management],
    [http://github.com/marcomaggi/mmux-unsafe-users-management/])
@@ -36,10 +36,12 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 
-MBFL_SETUP(v3.0.0)
+MBFL_SETUP(v3.0.0-devel.8)
 
 
 #### external programs
+
+AC_PROG_SED
 
 AC_ARG_WITH([bash],
   AS_HELP_STRING([--with-bash],[select a pathname for the executable bash]),

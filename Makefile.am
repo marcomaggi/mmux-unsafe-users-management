@@ -4,16 +4,44 @@ ACLOCAL_AMFLAGS		= -I meta/autotools
 EXTRA_DIST		= INSTALL
 dist_doc_DATA		= README COPYING
 MBFLPP_FLAGS		= --add-bash
+
+BUILT_SOURCES		=
 CLEANFILES		=
+DISTCLEANFILES		=
+
+
+#### Automake dirstamp files
+
+MMUX_AM_DIRSTAMP_FILES	=					\
+	src/etc/sudoers.d/$(am__dirstamp)			\
+	doc/mmux-unsafe-users-management.html/$(am__dirstamp)	\
+	src/etc/bash_completion.d/$(am__dirstamp)		\
+	src/sbin/$(am__dirstamp)
+
+BUILT_SOURCES		+= $(MMUX_AM_DIRSTAMP_FILES)
+DISTCLEANFILES		+= $(MMUX_AM_DIRSTAMP_FILES)
+
+src/sbin/$(am__dirstamp):
+	@$(MKDIR_P) src/sbin/
+	@: > $(@)
+
+doc/mmux-unsafe-users-management.html/$(am__dirstamp):
+	@$(MKDIR_P) doc/mmux-unsafe-users-management.html/
+	@: > $(@)
+
+src/etc/bash_completion.d/$(am__dirstamp):
+	@$(MKDIR_P) src/etc/bash_completion.d/
+	@: > src/etc/bash_completion.d/$(am__dirstamp)
+
+src/etc/sudoers.d/$(am__dirstamp):
+	@$(MKDIR_P) src/etc/sudoers.d/
+	@: > src/etc/sudoers.d//$(am__dirstamp)
 
 
 #### documentation
 
-EXTRA_DIST		+= \
-	doc/mmux-unsafe-users-management.style.css
-CLEANFILES		+=						\
-	doc/mmux-unsafe-users-management.css				\
-	doc/mmux-unsafe-users-management.html/$(am__dirstamp)
+EXTRA_DIST		+= doc/mmux-unsafe-users-management.style.css
+CLEANFILES		+= doc/mmux-unsafe-users-management.css
 
 AM_MAKEINFOFLAGS	= --no-split
 AM_MAKEINFOHTMLFLAGS	= --split=node -c WORDS_IN_PAGE=0		\
@@ -28,95 +56,47 @@ doc_mmux_unsafe_users_management_TEXINFOS	=			\
 
 dist_man1_MANS		= doc/mmux-unsafe-users-manager.man
 
-## --------------------------------------------------------------------
-
-doc/mmux-unsafe-users-management.html/$(am__dirstamp): doc/$(am__dirstamp)
-	@$(MKDIR_P) doc/mmux-unsafe-users-management.html/
-	@: > doc/mmux-unsafe-users-management.html/$(am__dirstamp)
-
-doc/mmux-unsafe-users-management.html/mmux-unsafe-users-management.css: \
-		doc/mmux-unsafe-users-management.style.css doc/mmux-unsafe-users-management.html/$(am__dirstamp)
-	$(INSTALL) -m 0444 \
+doc/mmux-unsafe-users-management.html/mmux-unsafe-users-management.css: doc/mmux-unsafe-users-management.style.css
+	$(INSTALL_DATA) \
 		"$(top_srcdir)/doc/mmux-unsafe-users-management.style.css" \
 		"$(builddir)/doc/mmux-unsafe-users-management.html/mmux-unsafe-users-management.css"
-
-## --------------------------------------------------------------------
 
 html-local: doc/mmux-unsafe-users-management.html/mmux-unsafe-users-management.css
 
 install-html-local:
 	$(MKDIR_P) "$(DESTDIR)$(htmldir)/mmux-unsafe-users-management.html/"
-	$(INSTALL) -m 0444 \
+	$(INSTALL_DATA) \
 		$(builddir)/doc/mmux-unsafe-users-management.html/mmux-unsafe-users-management.css \
 		"$(DESTDIR)$(htmldir)/mmux-unsafe-users-management.html/"
 
 
 #### scripts
 
-sbin_SCRIPTS			= 			\
-	src/sbin/mmux-unsafe-users-manager
+sbin_SCRIPTS	=  src/sbin/mmux-unsafe-users-manager
+CLEANFILES	+= $(sbin_SCRIPTS)
 
-CLEANFILES			+=	 		\
-	src/sbin/mmux-unsafe-users-manager		\
-	src/sbin/$(am__dirstamp)
-
-sbinscripts_PREREQUISITES	=			\
-	src/sbin/$(am__dirstamp)
-
-src/sbin/$(am__dirstamp):
-	@$(MKDIR_P) src/sbin/
-	@: > src/sbin/$(am__dirstamp)
-
-src/sbin/mmux-unsafe-users-manager :			\
-		src/sbin/mmux-unsafe-users-manager.m4	\
-		$(sbinscripts_PREREQUISITES)
+src/sbin/mmux-unsafe-users-manager : src/sbin/mmux-unsafe-users-manager.m4
 	$(MBFLPP) $(MBFLPP_FLAGS) <$< >$@
 
 
 #### sudoers files
 
-EXTRA_DIST		+=					\
-	src/etc/sudoers.d/mmux-unsafe-users-management.conf.sed
-
 sudoersdir		= $(sysconfdir)/sudoers.d
-sudoers_DATA		=					\
-	src/etc/sudoers.d/mmux-unsafe-users-management.conf
+sudoers_DATA		= src/etc/sudoers.d/mmux-unsafe-users-management.conf
+EXTRA_DIST		+= src/etc/sudoers.d/mmux-unsafe-users-management.conf.sed
+CLEANFILES		+= $(sudoers_DATA)
 
-CLEANFILES		+=					\
-	src/etc/sudoers.d/mmux-unsafe-users-management.conf	\
-	src/etc/sudoers.d/$(am__dirstamp)
-
-sudoers_PREREQUISITES	=			\
-	src/etc/sudoers.d/$(am__dirstamp)
-
-src/etc/sudoers.d/$(am__dirstamp):
-	@$(MKDIR_P) src/etc/sudoers.d/
-	@: > src/etc/sudoers.d/$(am__dirstamp)
-
-src/etc/sudoers.d/mmux-unsafe-users-management.conf:				\
-		src/etc/sudoers.d/mmux-unsafe-users-management.conf.sed		\
-		$(sudoers_PREREQUISITES)
-	sed --expression "s%__SBINDIR__%$(sbindir)%g" --expression "s%//%/%g" <$(<) >$@
+src/etc/sudoers.d/mmux-unsafe-users-management.conf: src/etc/sudoers.d/mmux-unsafe-users-management.conf.sed
+	$(SED) --expression "s%__SBINDIR__%$(sbindir)%g" --expression "s%//%/%g" <$(<) >$@
 
 
 #### command line completions
 
-completionsdir			= $(sysconfdir)/bash_completion.d
-completions_SCRIPTS		=					\
-	src/etc/bash_completion.d/mmux-unsafe-users-manager.bash
+completionsdir		= $(sysconfdir)/bash_completion.d
+completions_SCRIPTS	=  src/etc/bash_completion.d/mmux-unsafe-users-manager.bash
+CLEANFILES		+= $(completions_SCRIPTS)
 
-CLEANFILES			+=					\
-	src/etc/bash_completion.d/mmux-unsafe-users-manager.bash	\
-	src/etc/bash_completion.d/$(am__dirstamp)
-
-completions_PREREQUISITES	= \
-	src/etc/bash_completion.d/$(am__dirstamp)
-
-src/etc/bash_completion.d/$(am__dirstamp):
-	@$(MKDIR_P) src/etc/bash_completion.d
-	@: > src/etc/bash_completion.d/$(am__dirstamp)
-
-src/etc/bash_completion.d/mmux-unsafe-users-manager.bash: src/sbin/mmux-unsafe-users-manager $(completions_PREREQUISITES)
+src/etc/bash_completion.d/mmux-unsafe-users-manager.bash: src/sbin/mmux-unsafe-users-manager
 	$(MMUX_PROGRAM_BASH) src/sbin/mmux-unsafe-users-manager help print-completions-script >$(@)
 
 

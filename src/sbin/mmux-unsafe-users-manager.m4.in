@@ -25,8 +25,9 @@
 
 #### global variables
 
+declare -r script_REQUIRED_MBFL_VERSION=v3.0.0-devel.8
 declare -r script_PROGNAME=mmux-unsafe-users-manager
-declare -r script_VERSION=0.4.0
+declare -r script_VERSION=0.5.0
 declare -r script_COPYRIGHT_YEARS='2014, 2018, 2020, 2023'
 declare -r script_AUTHOR='Marco Maggi'
 declare -r script_LICENSE=GPL
@@ -34,7 +35,6 @@ declare script_USAGE="usage: ${script_PROGNAME} [action] [options] [--] [argumen
 declare script_DESCRIPTION='Unsafe users management operations.'
 declare script_EXAMPLES=
 
-declare -r script_REQUIRED_MBFL_VERSION=v3.0.0-devel.6
 declare -r COMPLETIONS_SCRIPT_NAMESPACE='p-mmux-unsafe-users-manager'
 
 ### ------------------------------------------------------------------------
@@ -256,20 +256,20 @@ function script_action_ADD () {
 
     # Determine the safe username.
     {
-	mbfl_local_varref(SAFE_USERNAME)
+	mbfl_declare_varref(SAFE_USERNAME)
 	determine_safe_username_var mbfl_datavar(SAFE_USERNAME)
     }
 
     # Determine the unsafe username.
     {
-	mbfl_local_varref(UNSAFE_USERNAME)
+	mbfl_declare_varref(UNSAFE_USERNAME)
 	mbfl_command_line_argument(UNSAFE_USERNAME, 0)
 	determine_unsafe_username_var mbfl_datavar(UNSAFE_USERNAME)
     }
 
     # Determine the base directory for unsafe users' home directories.
     {
-	mbfl_local_varref(UNSAFE_USERS_HOME_BASE_DIRECTORY)
+	mbfl_declare_varref(UNSAFE_USERS_HOME_BASE_DIRECTORY)
 	determine_base_directory_for_unsafe_users_home_directories_var mbfl_datavar(UNSAFE_USERS_HOME_BASE_DIRECTORY)
     }
 
@@ -363,13 +363,13 @@ function script_action_DEL () {
 
     # Determine the safe username.
     {
-	mbfl_local_varref(SAFE_USERNAME)
+	mbfl_declare_varref(SAFE_USERNAME)
 	determine_safe_username_var mbfl_datavar(SAFE_USERNAME)
     }
 
     # Determine the unsafe username.
     {
-	mbfl_local_varref(UNSAFE_USERNAME)
+	mbfl_declare_varref(UNSAFE_USERNAME)
 	mbfl_command_line_argument(UNSAFE_USERNAME, 0)
 	determine_unsafe_username_var mbfl_datavar(UNSAFE_USERNAME)
     }
@@ -451,7 +451,7 @@ function script_action_ENABLE_X () {
 
     # Determine the safe username.
     {
-	mbfl_local_varref(SAFE_USERNAME)
+	mbfl_declare_varref(SAFE_USERNAME)
 	determine_safe_username_var mbfl_datavar(SAFE_USERNAME)
     }
 
@@ -467,7 +467,7 @@ function script_action_ENABLE_X () {
 
     # Enable X access to the unsafe users.
     {
-	mbfl_local_index_array_varref(UNSAFE_USERNAMES)
+	mbfl_declare_index_array_varref(UNSAFE_USERNAMES)
 	local -i i
 	local XHOST_ARG
 
@@ -500,7 +500,7 @@ function script_action_DISABLE_X () {
 
     # Determine the safe username.
     {
-	mbfl_local_varref(SAFE_USERNAME)
+	mbfl_declare_varref(SAFE_USERNAME)
 	determine_safe_username_var mbfl_datavar(SAFE_USERNAME)
     }
 
@@ -516,7 +516,7 @@ function script_action_DISABLE_X () {
 
     # Disable X access to the unsafe users.
     {
-	mbfl_local_index_array_varref(UNSAFE_USERNAMES)
+	mbfl_declare_index_array_varref(UNSAFE_USERNAMES)
 	local -i i
 	local XHOST_ARG
 
@@ -552,13 +552,13 @@ function script_action_NORMALISE () {
 
     # Determine the safe username.
     {
-	mbfl_local_varref(SAFE_USERNAME)
+	mbfl_declare_varref(SAFE_USERNAME)
 	determine_safe_username_var mbfl_datavar(SAFE_USERNAME)
     }
 
     # Determine the unsafe username.  This is optional: we accept an empty string as value.
     {
-	mbfl_local_varref(UNSAFE_USERNAME, "$script_option_UNSAFE_USERNAME")
+	mbfl_declare_varref(UNSAFE_USERNAME, "$script_option_UNSAFE_USERNAME")
 	if mbfl_string_is_not_empty "$UNSAFE_USERNAME"
 	then determine_unsafe_username_var mbfl_datavar(UNSAFE_USERNAME)
 	fi
@@ -626,7 +626,7 @@ function script_action_SUDO_NORMALISE () {
 function normalise_all_unsafe_users_home_directories () {
     mbfl_mandatory_parameter(SAFE_USERNAME, 1, safe user name)
 
-    mbfl_local_varref(UNSAFE_USERS_LIST_FILE)
+    mbfl_declare_varref(UNSAFE_USERS_LIST_FILE)
     unsafe_users_list_determine_file_pathname_var mbfl_datavar(UNSAFE_USERS_LIST_FILE) "$SAFE_USERNAME"
     mbfl_message_verbose_printf 'reading unsafe users list from: "%s"\n' "$UNSAFE_USERS_LIST_FILE"
 
@@ -656,8 +656,8 @@ function normalise_single_unsafe_user_home_directory () {
 
     mbfl_message_verbose_printf 'processing unsafe user: "%s"\n' "$UNSAFE_USERNAME"
 
-    mbfl_local_varref(UNSAFE_USER_INDEX)
-    mbfl_local_varref(UNSAFE_USERHOME)
+    mbfl_declare_varref(UNSAFE_USER_INDEX)
+    mbfl_declare_varref(UNSAFE_USERHOME)
 
     read_passwd_data
     mbfl_system_passwd_find_entry_by_name_var mbfl_datavar(UNSAFE_USER_INDEX) "$UNSAFE_USERNAME"
@@ -1126,8 +1126,8 @@ function determine_base_directory_for_unsafe_users_home_directories_var () {
 function unsafe_users_list_determine_file_pathname_var () {
     mbfl_mandatory_nameref_parameter(UNSAFE_USERS_LIST_FILE, 1, result variable)
     mbfl_mandatory_parameter(SAFE_USERNAME,                  2, safe user name)
-    mbfl_local_varref(SAFE_USER_INDEX)
-    mbfl_local_varref(SAFE_USERHOME)
+    mbfl_declare_varref(SAFE_USER_INDEX)
+    mbfl_declare_varref(SAFE_USERHOME)
 
     read_passwd_data
     mbfl_system_passwd_find_entry_by_name_var mbfl_datavar(SAFE_USER_INDEX) "$SAFE_USERNAME"
@@ -1144,7 +1144,7 @@ function unsafe_users_list_determine_file_pathname_var () {
 
 function unsafe_users_list_load_file () {
     mbfl_mandatory_nameref_parameter(UNSAFE_USERNAMES, 1, array to be filled with usernames)
-    mbfl_local_varref(UNSAFE_USERS_LIST_FILE)
+    mbfl_declare_varref(UNSAFE_USERS_LIST_FILE)
     unsafe_users_list_determine_file_pathname_var mbfl_datavar(UNSAFE_USERS_LIST_FILE) "$SAFE_USERNAME"
 
     mbfl_message_verbose_printf 'loading unsafe users list file: "%s"\n' "$UNSAFE_USERS_LIST_FILE"
@@ -1226,7 +1226,7 @@ function program_this_script () {
     mbfl_mandatory_parameter(ACTION, 1, action)
     shift
 
-    mbfl_local_varref(SUBSCRIPT_FLAGS)
+    mbfl_declare_varref(SUBSCRIPT_FLAGS)
     mbfl_getopts_gather_mbfl_options_var mbfl_datavar(SUBSCRIPT_FLAGS)
 
     mbfl_location_enter
@@ -1273,7 +1273,7 @@ function program_install () {
 }
 
 function program_xhost () {
-    mbfl_local_varref(XHOST)
+    mbfl_declare_varref(XHOST)
     mbfl_program_found_var mbfl_datavar(XHOST)	xhost || exit $?
 
     mbfl_program_exec "$XHOST" "$@"
