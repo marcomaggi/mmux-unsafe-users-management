@@ -74,6 +74,7 @@ install-html-local:
 
 sbin_SCRIPTS	=  src/sbin/mmux-unsafe-users-manager
 CLEANFILES	+= $(sbin_SCRIPTS)
+BUILT_SOURCES	+= src/sbin/mmux-unsafe-users-manager.m4
 
 src/sbin/mmux-unsafe-users-manager : src/sbin/mmux-unsafe-users-manager.m4
 	$(MBFLPP) $(MBFLPP_FLAGS) <$< >$@
@@ -103,6 +104,8 @@ src/etc/bash_completion.d/mmux-unsafe-users-manager.bash: src/sbin/mmux-unsafe-u
 #### X11 interface
 
 mmuxX11dir		= $(sysconfdir)/mmux/xinitrc.d
-mmuxX11_SCRIPTS		= src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
+mmuxX11_SCRIPTS		=  src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
+BUILT_SOURCES		+= src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
+
 
 ### end of file
