@@ -33,7 +33,7 @@
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2014, 2018, 2020
+@set COPYRIGHT_YEARS            2014, 2018, 2020, 2023
 
 @c ------------------------------------------------------------
 
@@ -46,7 +46,7 @@
 @set MANAGER_SCRIPT_COMMAND     @command{mmux-unsafe-users-manager}
 @set UNSAFE_USERS_DOTFILE       @file{~/.mmux-unsafe-users}
 
-@set REQUIRED_MBFL_VERSION      v3.0.0-devel.7
+@set REQUIRED_MBFL_VERSION      v3.0.0-devel.8
 
 @c page
 @c ------------------------------------------------------------
@@ -58,7 +58,7 @@ This document describes version @version{} of @value{PACKAGE}, a distribution of
 scripts; it proposes a model to manage unsafe user profiles associated to safe user accounts on
 Slackware @gnu{}+Linux systems.  This package depends upon the external package Marco's Bash
 Functions Library (@mbfl{}), at least version @value{REQUIRED_MBFL_VERSION}.  This package expects
-the following packages to be installed: @gnu{} Coreutils, shadow.
+the following packages to be installed: @gnu{} Coreutils, shadow, sudo.
 
 The package is distributed under the terms of the @gnu{} General Public License (@gpl{}).
 
@@ -141,7 +141,7 @@ This document describes version @version{} of @value{PACKAGE}, a distribution of
 scripts; it proposes a model to manage unsafe user profiles associated to safe user accounts on
 Slackware @gnu{}+Linux systems.  This package depends upon the external package Marco's Bash
 Functions Library (@mbfl{}), at least version @value{REQUIRED_MBFL_VERSION}.  This package expects
-the following packages to be installed: @gnu{} Coreutils, shadow.
+the following packages to be installed: @gnu{} Coreutils, shadow, sudo.
 
 @c page
 @node prerequisites
