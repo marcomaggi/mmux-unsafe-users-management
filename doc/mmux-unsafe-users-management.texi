@@ -114,7 +114,7 @@ included in the section entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
-* prerequisites::               Prerequisites to use the package.
+* setup::                       Installation and prerequisites.
 * using::                       How to use the package.
 * tips::                        Useful stuff to know.
 * script::                      The command line utility that does it all.
@@ -143,26 +143,59 @@ Slackware @gnu{}+Linux systems.  This package depends upon the external package 
 Functions Library (@mbfl{}), at least version @value{REQUIRED_MBFL_VERSION}.  This package expects
 the following packages to be installed: @gnu{} Coreutils, shadow, sudo.
 
-@c page
-@node prerequisites
-@chapter Prerequisites to use the package
-
-
-To use this package, the following system requirements must be satisfied:
-
-@itemize
-@item
 This package is meant to be used on computers for personal use, on which only trusted users have
-accounts.  It introduces a security layer to run applications under restricted privileges, with the
-purpose of partially protect legitimate users from remote attacks.
+accounts and physical access; it introduces a security layer to run applications under restricted
+privileges, with the purpose of partially protect legitimate users from remote attacks.
 
-@item
-The system administrator is expected to add the groups @code{mmux-safe-usrs} and
-@code{mmux-unsafe-usrs}, for example using the commands:
+Before using this package: it must be correctly installed and set up, @ref{setup, Installation and
+prerequisites}.  The package installs a ``management script'' @value{MANAGER_SCRIPT_COMMAND}, by
+default under @file{/sbin/}.
+
+Once the package is correctly installed, we can associate an unsafe user @samp{marco-firefox} to the
+safe user @samp{marco} with this command:
 
 @example
-/usr/sbin/groupadd --force mmux-safe-usrs
-/usr/sbin/groupadd --force mmux-unsafe-usrs
+@value{MANAGER_SCRIPT} add marco-firefox -Smarco
+@end example
+
+@noindent
+then we can launch executables under the unsafe user as follows:
+
+@example
+sudo -u marco-firefox /path/to/firefox
+@end example
+
+@c page
+@node setup
+@chapter Installation and prerequisites
+
+
+To use this package, we must first setup the system by running the management script as follows:
+
+@example
+@value{MANAGER_SCRIPT} setup --verbose --show-program
+@end example
+
+@noindent
+it is not mandatory to use the options @option{--verbose} and @option{--show-program}, but it is a
+good idea.  This package's distribution comes with a script @file{meta/slackware/doinst.sh} that
+performs the setup; it is usable, in fact, as Slackware package installation script.
+
+The script will perform the following operations:
+
+@itemize
+@cindex @code{mmux-safe-usrs} system group
+@cindex System group @code{mmux-safe-usrs}
+@cindex Group @code{mmux-safe-usrs}
+@cindex @code{mmux-unsafe-usrs} system group
+@cindex System group @code{mmux-unsafe-usrs}
+@cindex Group @code{mmux-unsafe-usrs}
+@item
+Add the groups @code{mmux-safe-usrs} and @code{mmux-unsafe-usrs} using the commands:
+
+@example
+/usr/sbin/groupadd --system --force mmux-safe-usrs
+/usr/sbin/groupadd --system --force mmux-unsafe-usrs
 @end example
 
 @noindent
@@ -177,6 +210,10 @@ the command:
 @example
 /usr/sbin/usermod marco --append --groups @code{mmux-safe-usrs},@code{mmux-unsafe-usrs}
 @end example
+
+@item
+Normalise ownership and access permissions for the management script itself: its owner should be
+@code{root}, its group @code{mmux-safe-usrs}, its access permissions @code{0750}.
 
 @item
 This package relies on the program @command{sudo} to allow unsafe users creation to the users of the
@@ -201,14 +238,25 @@ file @file{/etc/sudoers}:
 @end example
 
 @item
-This package's distribution comes with a script @file{meta/slackware/doinst.sh} that can be run to
-create the user groups and adjust the access permissions of the installed files.  It is usable, in
-fact, as Slackware package installation script.
-@end itemize
+Install the directory under which unsafe users's home directories will be installed; by default it
+is:
 
-With this system configuration, users that are members of the group @code{mmux-safe-usrs} can:
-add and remove multiple unsafe users accounts associated to a safe user; enable unsafe users to use
-a X Window server running under the safe user's permissions.
+@center @file{/home/unsafe-users}
+
+@noindent
+if this directory already exists: its ownership and access permissions are normalised; this
+directory owner should be @code{root}, its group @code{mmux-unsafe-usrs}, its access permissions
+@code{0750}.
+
+@item
+Normalise ownership and access permissions for the X Window configuration file:
+
+@center @file{/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh}
+
+@noindent
+which allows safe users to run processes under X Window with the restricted privileges of unsafe
+users.
+@end itemize
 
 @c page
 @node using

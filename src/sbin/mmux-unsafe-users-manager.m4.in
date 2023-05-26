@@ -33,7 +33,10 @@ declare -r script_AUTHOR='Marco Maggi'
 declare -r script_LICENSE=GPL
 declare script_USAGE="usage: ${script_PROGNAME} [action] [options] [--] [arguments]"
 declare script_DESCRIPTION='Unsafe users management operations.'
-declare script_EXAMPLES=
+declare script_EXAMPLES="Usage examples:
+\n\
+\t${script_PROGNAME} add marco-firefox -Smarco
+\t${script_PROGNAME} normalise --unsafe-username=marco-firefox"
 
 declare -r COMPLETIONS_SCRIPT_NAMESPACE='p-mmux-unsafe-users-manager'
 
@@ -89,12 +92,6 @@ declare -rA DEFAULT_UNSAFE_USERS_HOME_BASE_DIRECTORY=([PATHNAME]='/home/unsafe-u
 						      [MODE]='0750'
 						      [OWNER]='root'
 						      [GROUP]="$UNSAFE_USERS_GROUP")
-
-### ------------------------------------------------------------------------
-
-declare -r DEFAULT_UNSAFE_USERS_HOME_BASE_DIRECTORY_MODE='0750'
-declare -r DEFAULT_UNSAFE_USERS_HOME_BASE_DIRECTORY_OWNER='root'
-declare -r DEFAULT_UNSAFE_USERS_HOME_BASE_DIRECTORY_GROUP=$UNSAFE_USERS_GROUP
 
 ### ------------------------------------------------------------------------
 
@@ -158,24 +155,38 @@ mbfl_location_enable_cleanup_atexit
 #### script actions
 
 mbfl_declare_action_set HELP
-mbfl_declare_action HELP HELP_USAGE			NONE	usage			 'Print the help screen and exit.'
-mbfl_declare_action HELP HELP_PRINT_COMPLETIONS_SCRIPT	NONE	print-completions-script 'Print the completions script for this program.'
+#                   action-set	keyword				subset	identifier		      description
+mbfl_declare_action HELP	HELP_USAGE			NONE	usage			      'Print the help screen and exit.'
+mbfl_declare_action HELP	HELP_PRINT_COMPLETIONS_SCRIPT	NONE	print-completions-script \
+		    'Print the completions script for this program.'
 
 ## --------------------------------------------------------------------
 
 mbfl_declare_action_set MAIN
-mbfl_declare_action MAIN SETUP		NONE setup		'Prepare system for package usage.'
-mbfl_declare_action MAIN ADD		NONE add		'Add an unsafe user.'
-mbfl_declare_action MAIN DEL		NONE del		'Delete an unsafe user.'
-mbfl_declare_action MAIN ENABLE_X	NONE enable-x		'Enable unsafe users running X applications in safe user X server.'
-mbfl_declare_action MAIN DISABLE_X	NONE disable-x		'Disable unsafe users running X applications in safe user X server.'
-mbfl_declare_action MAIN NORMALISE	NONE normalise		'Normalise the home directories of unsafe users.'
-mbfl_declare_action MAIN SUDO_ADD	NONE sudo-add		'Internal action.'
-mbfl_declare_action MAIN SUDO_DEL	NONE sudo-del		'Internal action.'
-mbfl_declare_action MAIN SUDO_SETUP	NONE sudo-setup		'Internal action.'
-mbfl_declare_action MAIN SUDO_NORMALISE	NONE sudo-normalise	'Internal action.'
-mbfl_declare_action MAIN HELP		HELP help		'Help the user of this script.'
+#                   action-set	keyword		subset	identifier	description
+mbfl_declare_action MAIN	SETUP		NONE	setup		'Prepare system for package usage.'
+mbfl_declare_action MAIN	ADD		NONE	add		'Add an unsafe user.'
+mbfl_declare_action MAIN	DEL		NONE	del		'Delete an unsafe user.'
+mbfl_declare_action MAIN	ENABLE_X	NONE	enable-x	'Enable unsafe users running X applications in safe user X server.'
+mbfl_declare_action MAIN	DISABLE_X	NONE	disable-x	'Disable unsafe users running X applications in safe user X server.'
+mbfl_declare_action MAIN	NORMALISE	NONE	normalise	'Normalise the home directories of unsafe users.'
+mbfl_declare_action MAIN	SUDO_ADD	NONE	sudo-add	'Internal action.'
+mbfl_declare_action MAIN	SUDO_DEL	NONE	sudo-del	'Internal action.'
+mbfl_declare_action MAIN	SUDO_SETUP	NONE	sudo-setup	'Internal action.'
+mbfl_declare_action MAIN	SUDO_NORMALISE	NONE	sudo-normalise	'Internal action.'
+mbfl_declare_action MAIN	HELP		HELP	help		'Help the user of this script.'
 
+
+#### script action functions: main
+#
+# This is the default  main function.  It is invoked whenever the script  is executed without action
+# arguments.
+#
+
+function main () {
+    mbfl_actions_fake_action_set MAIN
+    mbfl_main_print_usage_screen_brief
+}
 
 
 #### prepare the system for package usage
@@ -221,18 +232,14 @@ function script_action_SUDO_SETUP () {
 
     setup_create_safe_users_group
     setup_create_unsafe_users_group
+    setup_normalise_this_script_itself
+    setup_normalise_sudoers_conf_file
+
     if mbfl_file_is_directory "$UNSAFE_USERS_HOME_BASE_DIRECTORY"
     then setup_normalise_base_directory_for_unsafe_users_home_directories "$UNSAFE_USERS_HOME_BASE_DIRECTORY"
     else setup_create_base_directory_for_unsafe_users_home_directories    "$UNSAFE_USERS_HOME_BASE_DIRECTORY"
     fi
 
-    setup_normalise_sudoers_conf_directory
-    setup_normalise_sudoers_conf_file
-    setup_normalise_this_script_itself
-    if mbfl_file_is_directory "$MMUX_XINITRC_DIRECTORY"
-    then setup_create_xinitrc_directory
-    else setup_normalise_xinitrc_directory
-    fi
     setup_normalise_xinitrc_script
 }
 
@@ -538,7 +545,7 @@ function script_action_DISABLE_X () {
 function script_before_parsing_options_NORMALISE () {
     script_USAGE="usage: ${script_PROGNAME} normalise [options]"
     script_DESCRIPTION='Normalise the home directories of unsafe users associated to a single safe user.\n
-If the SAFE_USERNAME is not given on the command line: it is determined
+If the safe username is not given on the command line: it is determined
 using the program "whoami" from the GNU Coreutils.'
     mbfl_declare_option SAFE_USERNAME   '' S safe-user       witharg 'Select the name of the safe user.'
     mbfl_declare_option UNSAFE_USERNAME '' U unsafe-username witharg 'Select a single unsafe user whose directory we want to normalise.'
@@ -875,43 +882,6 @@ function setup_normalise_this_script_itself () {
 	'manager script file'
 }
 
-### ------------------------------------------------------------------------
-
-function setup_create_xinitrc_directory () {
-    setup_p_create_directory					\
-	"$MMUX_XINITRC_DIRECTORY_PATHNAME"			\
-	'root'							\
-	'root'							\
-	'0755'							\
-	'MMUX xinitrc directory'
-}
-function setup_normalise_xinitrc_directory () {
-    setup_p_normalise_directory					\
-	"$MMUX_XINITRC_DIRECTORY_PATHNAME"			\
-	'root'							\
-	'root'							\
-	'0755'							\
-	'MMUX xinitrc directory'
-}
-function setup_normalise_xinitrc_script () {
-    setup_p_normalise_file					\
-	"$MMUX_XINITRC_SCRIPT_PATHNAME"				\
-	'root'							\
-	"$SAFE_USERS_GROUP"					\
-	'0750'							\
-	'xinitrc script file'
-}
-
-### ------------------------------------------------------------------------
-
-function setup_normalise_sudoers_conf_directory () {
-    setup_p_normalise_directory					\
-	"$SUDOERS_CONF_DIRECTORY_PATHNAME"			\
-	'root'							\
-	'root'							\
-	'0755'							\
-	'sudoers conf directory'
-}
 function setup_normalise_sudoers_conf_file () {
     setup_p_normalise_file					\
 	"$SUDOERS_CONF_FILE_PATHNAME"				\
@@ -919,6 +889,17 @@ function setup_normalise_sudoers_conf_file () {
 	'root'							\
 	'0400'							\
 	'sudoers conf file'
+}
+
+### ------------------------------------------------------------------------
+
+function setup_normalise_xinitrc_script () {
+    setup_p_normalise_file					\
+	"$MMUX_XINITRC_SCRIPT_PATHNAME"				\
+	'root'							\
+	"$SAFE_USERS_GROUP"					\
+	'0750'							\
+	'xinitrc script file'
 }
 
 ### ------------------------------------------------------------------------
@@ -1282,9 +1263,6 @@ function program_xhost () {
 
 #### let's go
 
-function main () {
-    mbfl_main_print_usage_screen_brief
-}
 mbfl_main
 
 ### end of file
