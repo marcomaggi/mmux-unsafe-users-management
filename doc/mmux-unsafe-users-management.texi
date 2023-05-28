@@ -199,6 +199,12 @@ In the user management model implemented by @value{PACKAGE}: only a partition of
 private data can be shared with processes that access the Internet in any way or shared with
 processes run by other safe--users.
 
+
+@defvr {Unix Group} mmux-safe-usrs
+Users group for safe--users.  Only users allowed to own associated unsafe-users must be members of
+this group.
+@end defvr
+
 @c page
 @node overview unsafe
 @section What is an unsafe user
@@ -221,6 +227,11 @@ The standard for Unix systems is that the files @file{/etc/passwd} and @file{/et
 mode @code{0644}: it is impossible to hide the existence of an unsafe--user; it is impossible to
 configure a system in such a way that only the safe--user knows about the existence of its
 unsafe--users.
+
+
+@defvr {Unix Group} mmux-safe-usrs
+Users group for unsafe--users.  Both safe--users and unsafe-users must be members of this group.
+@end defvr
 
 @c page
 @node setup
