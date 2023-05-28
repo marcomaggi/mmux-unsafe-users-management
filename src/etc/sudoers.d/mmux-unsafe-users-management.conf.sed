@@ -7,10 +7,10 @@
 User_Alias	MMUX_SAFE_USERS_GROUP	= %mmux-safe-usrs
 
 # Command aliases
-Cmnd_Alias	MMUX_UNSAFE_USERS_ADD		= __SBINDIR__/mmux-unsafe-users-manager sudo-add
-Cmnd_Alias	MMUX_UNSAFE_USERS_DEL		= __SBINDIR__/mmux-unsafe-users-manager sudo-del
-Cmnd_Alias	MMUX_UNSAFE_USERS_SETUP		= __SBINDIR__/mmux-unsafe-users-manager sudo-setup
-Cmnd_Alias	MMUX_UNSAFE_USERS_NORMALISE	= __SBINDIR__/mmux-unsafe-users-manager sudo-normalise
+Cmnd_Alias	MMUX_UNSAFE_USERS_ADD		= __SBINDIR__/mmux-unsafe-users-manager sudo-unsafe-users-add
+Cmnd_Alias	MMUX_UNSAFE_USERS_DEL		= __SBINDIR__/mmux-unsafe-users-manager sudo-unsafe-users-del
+Cmnd_Alias	MMUX_UNSAFE_USERS_SETUP		= __SBINDIR__/mmux-unsafe-users-manager sudo-unsafe-users-setup
+Cmnd_Alias	MMUX_UNSAFE_USERS_NORMALISE	= __SBINDIR__/mmux-unsafe-users-manager sudo-unsafe-users-normalise
 Cmnd_Alias	MMUX_UNSAFE_USERS_CMDS		= MMUX_UNSAFE_USERS_ADD, MMUX_UNSAFE_USERS_DEL, MMUX_UNSAFE_USERS_SETUP, MMUX_UNSAFE_USERS_NORMALISE
 
 # User privilege  specification: all the  users in the  selected group

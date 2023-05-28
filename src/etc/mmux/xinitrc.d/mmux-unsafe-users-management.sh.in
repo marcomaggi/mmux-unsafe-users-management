@@ -10,7 +10,7 @@ sbindir="@sbindir@"
 SCRIPT=${sbindir}/mmux-unsafe-users-manager
 
 if test -x "$SCRIPT"
-then "$SCRIPT" enable-x --verbose
+then "$SCRIPT" unsafe-users enable-x --verbose
 else printf '%s: script file not found: %s\n' "$0" "$SCRIPT" >&2
 fi
 

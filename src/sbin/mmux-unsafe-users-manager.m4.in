@@ -35,8 +35,9 @@ declare script_USAGE="usage: ${script_PROGNAME} [action] [options] [--] [argumen
 declare script_DESCRIPTION='Unsafe users management operations.'
 declare script_EXAMPLES="Usage examples:
 \n\
-\t${script_PROGNAME} add marco-firefox -Smarco
-\t${script_PROGNAME} normalise --unsafe-username=marco-firefox"
+\t${script_PROGNAME} safe-users   enable marco
+\t${script_PROGNAME} unsafe-users add marco-firefox -Smarco
+\t${script_PROGNAME} unsafe-users normalise --unsafe-username=marco-firefox"
 
 declare -r COMPLETIONS_SCRIPT_NAMESPACE='p-mmux-unsafe-users-manager'
 
@@ -160,21 +161,42 @@ mbfl_declare_action HELP	HELP_USAGE			NONE	usage			      'Print the help screen 
 mbfl_declare_action HELP	HELP_PRINT_COMPLETIONS_SCRIPT	NONE	print-completions-script \
 		    'Print the completions script for this program.'
 
-## --------------------------------------------------------------------
+### ------------------------------------------------------------------------
+
+mbfl_declare_action_set SAFE
+#                   action-set	keyword		subset	identifier	description
+mbfl_declare_action SAFE	SAFE_ENABLE	NONE	enable		'Enable safe users as unsafe-users wielder.'
+mbfl_declare_action SAFE	SAFE_DISABLE	NONE	disable		'Disable safe users as unsafe-users wielder.'
+
+### ------------------------------------------------------------------------
+
+mbfl_declare_action_set UNSAFE
+#                   action-set	keyword		subset	identifier	description
+mbfl_declare_action UNSAFE	UNSAFE_ADD	NONE	add		'Add an unsafe user.'
+mbfl_declare_action UNSAFE	UNSAFE_DEL	NONE	del		'Delete an unsafe user.'
+mbfl_declare_action UNSAFE	UNSAFE_ENABLE_X	NONE	enable-x	'Enable unsafe users running X applications in safe user X server.'
+mbfl_declare_action UNSAFE	UNSAFE_DISABLE_X NONE	disable-x	'Disable unsafe users running X applications in safe user X server.'
+mbfl_declare_action UNSAFE	UNSAFE_NORMALISE NONE	normalise	'Normalise the home directories of unsafe users.'
+
+### ------------------------------------------------------------------------
 
 mbfl_declare_action_set MAIN
-#                   action-set	keyword		subset	identifier	description
-mbfl_declare_action MAIN	SETUP		NONE	setup		'Prepare system for package usage.'
-mbfl_declare_action MAIN	ADD		NONE	add		'Add an unsafe user.'
-mbfl_declare_action MAIN	DEL		NONE	del		'Delete an unsafe user.'
-mbfl_declare_action MAIN	ENABLE_X	NONE	enable-x	'Enable unsafe users running X applications in safe user X server.'
-mbfl_declare_action MAIN	DISABLE_X	NONE	disable-x	'Disable unsafe users running X applications in safe user X server.'
-mbfl_declare_action MAIN	NORMALISE	NONE	normalise	'Normalise the home directories of unsafe users.'
-mbfl_declare_action MAIN	SUDO_ADD	NONE	sudo-add	'Internal action.'
-mbfl_declare_action MAIN	SUDO_DEL	NONE	sudo-del	'Internal action.'
-mbfl_declare_action MAIN	SUDO_SETUP	NONE	sudo-setup	'Internal action.'
-mbfl_declare_action MAIN	SUDO_NORMALISE	NONE	sudo-normalise	'Internal action.'
-mbfl_declare_action MAIN	HELP		HELP	help		'Help the user of this script.'
+#                   action-set	keyword			subset	identifier	description
+mbfl_declare_action MAIN	SETUP			NONE	setup		'Prepare the host system for package usage.'
+mbfl_declare_action MAIN	SAFE_USERS		SAFE	safe-users	'Manage safe users as unsafe users wielders.'
+mbfl_declare_action MAIN	UNSAFE_USERS		UNSAFE	unsafe-users	'Manage unsafe users.'
+
+mbfl_declare_action MAIN	SUDO_SETUP		NONE	sudo-setup		'Internal action.'
+
+mbfl_declare_action MAIN	SUDO_SAFE_ENABLE	NONE	sudo-safe-enable	'Internal action.'
+mbfl_declare_action MAIN	SUDO_SAFE_DISABLE	NONE	sudo-safe-disable	'Internal action.'
+
+mbfl_declare_action MAIN	SUDO_UNSAFE_ADD		NONE	sudo-unsafe-add		'Internal action.'
+mbfl_declare_action MAIN	SUDO_UNSAFE_DEL		NONE	sudo-unsafe-del		'Internal action.'
+mbfl_declare_action MAIN	SUDO_UNSAFE_SETUP	NONE	sudo-unsafe-setup	'Internal action.'
+mbfl_declare_action MAIN	SUDO_UNSAFE_NORMALISE	NONE	sudo-unsafe-normalise	'Internal action.'
+
+mbfl_declare_action MAIN	HELP			HELP	help		'Help the user of this script.'
 
 
 #### script action functions: main
@@ -194,6 +216,9 @@ function main () {
 function script_before_parsing_options_SETUP () {
     script_USAGE="usage: ${script_PROGNAME} setup [options]"
     script_DESCRIPTION='Prepare the system for package use.'
+    script_EXAMPLES="Usage examples:
+\n\
+\t${script_PROGNAME} setup --verbose --show-program"
     mbfl_declare_option UNSAFE_USERS_HOME_BASE_DIRECTORY mbfl_slot_ref(DEFAULT_UNSAFE_USERS_HOME_BASE_DIRECTORY, PATHNAME) \
 			'' unsafe-home-base witharg 'Select the base directory for the unsafe users\x27 home directories.'
 }
@@ -244,17 +269,67 @@ function script_action_SUDO_SETUP () {
 }
 
 
+#### safe and unsafe users root actions
+
+function script_before_parsing_options_SAFE_USERS () {
+    script_USAGE="usage: ${script_PROGNAME} safe-users [action] [options] [arguments]"
+    script_DESCRIPTION='Manage safe users as unsafe users wielders.'
+    script_EXAMPLES="Usage examples:
+\n\
+\t${script_PROGNAME} safe-users enable marco
+\t${script_PROGNAME} safe-users disable guido"
+}
+function script_action_SAFE_USERS () {
+    mbfl_main_print_usage_screen_brief
+}
+
+### ------------------------------------------------------------------------
+
+function script_before_parsing_options_UNSAFE_USERS () {
+    script_USAGE="usage: ${script_PROGNAME} unsafe-users [action] [options] [arguments]"
+    script_DESCRIPTION='Manage unsafe users.'
+    script_EXAMPLES="Usage examples:
+\n\
+\t${script_PROGNAME} unsafe-users add marco-firefox
+\t${script_PROGNAME} unsafe-users enable-x"
+}
+function script_action_UNSAFE_USERS () {
+    mbfl_main_print_usage_screen_brief
+}
+
+
+#### enable/disable safe users as unsafe users wielders
+
+function script_before_parsing_options_SAFE_ENABLE () {
+    script_USAGE="usage: ${script_PROGNAME} safe-users enable [options] SAFE_USER0 [SAFE_USER1 ...]"
+    script_DESCRIPTION='Enable safe users as unsafe-users wielder.'
+}
+function script_action_SAFE_ENABLE () {
+    mbfl_main_print_usage_screen_brief
+}
+
+### ------------------------------------------------------------------------
+
+function script_before_parsing_options_SAFE_DISABLE () {
+    script_USAGE="usage: ${script_PROGNAME} safe-users disable [options] SAFE_USER0 [SAFE_USER1 ...]"
+    script_DESCRIPTION='Disable safe users as unsafe-users wielder.'
+}
+function script_action_SAFE_DISABLE () {
+    mbfl_main_print_usage_screen_brief
+}
+
+
 #### adding unsafe users
 
-function script_before_parsing_options_ADD () {
-    script_USAGE="usage: ${script_PROGNAME} add [options] UNSAFE-USERNAME"
+function script_before_parsing_options_UNSAFE_ADD () {
+    script_USAGE="usage: ${script_PROGNAME} unsafe-users add [options] UNSAFE-USERNAME"
     script_DESCRIPTION='Add an unsafe user.'
 
     mbfl_declare_option UNSAFE_USERS_HOME_BASE_DIRECTORY mbfl_slot_ref(DEFAULT_UNSAFE_USERS_HOME_BASE_DIRECTORY, PATHNAME) \
 			'' unsafe-home-base witharg 'Select the base directory for the unsafe users\x27 home directories.'
     mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
 }
-function script_action_ADD () {
+function script_action_UNSAFE_ADD () {
     if ! mbfl_wrong_num_args 1 $ARGC
     then
 	mbfl_main_print_usage_screen_brief
@@ -297,11 +372,11 @@ function script_action_ADD () {
 
 ### ------------------------------------------------------------------------
 
-function script_before_parsing_options_SUDO_ADD () {
-    script_USAGE="usage: ${script_PROGNAME} sudo-add SAFE-USERNAME UNSAFE-USERNAME UNSAFE_USERS_HOME_BASE_DIRECTORY [options]"
+function script_before_parsing_options_SUDO_UNSAFE_ADD () {
+    script_USAGE="usage: ${script_PROGNAME} sudo-unsafe-add SAFE-USERNAME UNSAFE-USERNAME UNSAFE_USERS_HOME_BASE_DIRECTORY [options]"
     script_DESCRIPTION='Internal action.'
 }
-function script_action_SUDO_ADD () {
+function script_action_SUDO_UNSAFE_ADD () {
     if ! mbfl_wrong_num_args 3 $ARGC
     then
 	mbfl_main_print_usage_screen_brief
@@ -356,12 +431,12 @@ This user profile was created by the package MMUX Unsafe Users Management.\n' "$
 
 #### deleting unsafe users
 
-function script_before_parsing_options_DEL () {
-    script_USAGE="usage: ${script_PROGNAME} del UNSAFE-USERNAME [options]"
+function script_before_parsing_options_UNSAFE_DEL () {
+    script_USAGE="usage: ${script_PROGNAME} unsafe-users del UNSAFE-USERNAME [options]"
     script_DESCRIPTION='Remove an unsafe user.'
     mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
 }
-function script_action_DEL () {
+function script_action_UNSAFE_DEL () {
     if ! mbfl_wrong_num_args 1 $ARGC
     then
 	mbfl_main_print_usage_screen_brief
@@ -395,11 +470,11 @@ function script_action_DEL () {
 
 ### ------------------------------------------------------------------------
 
-function script_before_parsing_options_SUDO_DEL () {
-    script_USAGE="usage: ${script_PROGNAME} sudo-del SAFE-USERNAME UNSAFE-USERNAME [options]"
+function script_before_parsing_options_SUDO_UNSAFE_DEL () {
+    script_USAGE="usage: ${script_PROGNAME} sudo-unsafe-del SAFE-USERNAME UNSAFE-USERNAME [options]"
     script_DESCRIPTION='Internal action.'
 }
-function script_action_SUDO_DEL () {
+function script_action_SUDO_UNSAFE_DEL () {
     if ! mbfl_wrong_num_args 2 $ARGC
     then
 	mbfl_main_print_usage_screen_brief
@@ -444,12 +519,12 @@ function script_action_SUDO_DEL () {
 
 #### enabling access to X host
 
-function script_before_parsing_options_ENABLE_X () {
-    script_USAGE="usage: ${script_PROGNAME} enable-x [options]"
+function script_before_parsing_options_UNSAFE_ENABLE_X () {
+    script_USAGE="usage: ${script_PROGNAME} unsafe-users enable-x [options]"
     script_DESCRIPTION='Enable unsafe users running X applications in safe user X server.'
     mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
 }
-function script_action_ENABLE_X () {
+function script_action_UNSAFE_ENABLE_X () {
     if ! mbfl_wrong_num_args 0 $ARGC
     then
 	mbfl_main_print_usage_screen_brief
@@ -493,12 +568,12 @@ function script_action_ENABLE_X () {
 
 #### disabling access to X host
 
-function script_before_parsing_options_DISABLE_X () {
-    script_USAGE="usage: ${script_PROGNAME} disable-x [options]"
+function script_before_parsing_options_UNSAFE_DISABLE_X () {
+    script_USAGE="usage: ${script_PROGNAME} unsafe-users disable-x [options]"
     script_DESCRIPTION='Disable unsafe users running X applications in safe user X server.'
     mbfl_declare_option SAFE_USERNAME '' S safe-user witharg 'Select the name of the safe user.'
 }
-function script_action_DISABLE_X () {
+function script_action_UNSAFE_DISABLE_X () {
     if ! mbfl_wrong_num_args 0 $ARGC
     then
 	mbfl_main_print_usage_screen_brief
@@ -542,15 +617,15 @@ function script_action_DISABLE_X () {
 
 #### home directories normalisation
 
-function script_before_parsing_options_NORMALISE () {
-    script_USAGE="usage: ${script_PROGNAME} normalise [options]"
+function script_before_parsing_options_UNSAFE_NORMALISE () {
+    script_USAGE="usage: ${script_PROGNAME} unsafe-users normalise [options]"
     script_DESCRIPTION='Normalise the home directories of unsafe users associated to a single safe user.\n
 If the safe username is not given on the command line: it is determined
 using the program "whoami" from the GNU Coreutils.'
     mbfl_declare_option SAFE_USERNAME   '' S safe-user       witharg 'Select the name of the safe user.'
     mbfl_declare_option UNSAFE_USERNAME '' U unsafe-username witharg 'Select a single unsafe user whose directory we want to normalise.'
 }
-function script_action_NORMALISE () {
+function script_action_UNSAFE_NORMALISE () {
     if ! mbfl_wrong_num_args 0 $ARGC
     then
 	mbfl_main_print_usage_screen_brief
@@ -585,11 +660,11 @@ function script_action_NORMALISE () {
 
 ### ------------------------------------------------------------------------
 
-function script_before_parsing_options_SUDO_NORMALISE () {
-    script_USAGE="usage: ${script_PROGNAME} sudo-normalise [options] [--] SAFE_USERNAME [UNSAFE_USERNAME]"
+function script_before_parsing_options_SUDO_UNSAFE_NORMALISE () {
+    script_USAGE="usage: ${script_PROGNAME} sudo-unsafe-normalise [options] [--] SAFE_USERNAME [UNSAFE_USERNAME]"
     script_DESCRIPTION='Internal action.'
 }
-function script_action_SUDO_NORMALISE () {
+function script_action_SUDO_UNSAFE_NORMALISE () {
     if ! mbfl_wrong_num_args 2 $ARGC
     then
 	mbfl_main_print_usage_screen_brief

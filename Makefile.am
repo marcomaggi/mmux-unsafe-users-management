@@ -107,5 +107,4 @@ mmuxX11dir		= $(sysconfdir)/mmux/xinitrc.d
 mmuxX11_SCRIPTS		=  src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
 BUILT_SOURCES		+= src/etc/mmux/xinitrc.d/mmux-unsafe-users-management.sh
 
-
 ### end of file

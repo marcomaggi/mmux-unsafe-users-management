@@ -138,7 +138,7 @@ Indexes
 
 
 This document describes version @version{} of @value{PACKAGE}, a distribution of @gnu{} Bash
-scripts; it proposes a model to manage unsafe user profiles associated to safe user accounts on
+scripts; it proposes a model to manage unsafe--user profiles associated to safe--user accounts on
 Slackware @gnu{}+Linux systems.  This package depends upon the external package Marco's Bash
 Functions Library (@mbfl{}), at least version @value{REQUIRED_MBFL_VERSION}.  This package expects
 the following packages to be installed: @gnu{} Coreutils, shadow, sudo.
@@ -151,19 +151,76 @@ Before using this package: it must be correctly installed and set up, @ref{setup
 prerequisites}.  The package installs a ``management script'' @value{MANAGER_SCRIPT_COMMAND}, by
 default under @file{/sbin/}.
 
-Once the package is correctly installed, we can associate an unsafe user @samp{marco-firefox} to the
-safe user @samp{marco} with this command:
+@menu
+* overview intro::              Introduction to package operations.
+* overview safe::               What is a safe--user.
+* overview unsafe::             What is an unsafe--user.
+@end menu
+
+@c page
+@node overview intro
+@section Introduction to package operations
+
+
+Once the package is correctly installed, we can establish that the safe--user @samp{marco} is
+allowed to have unsafe--users associated to it by running the following command with @samp{root}
+privileges:
 
 @example
-@value{MANAGER_SCRIPT} add marco-firefox -Smarco
+@value{MANAGER_SCRIPT} safe-users enable marco
 @end example
 
 @noindent
-then we can launch executables under the unsafe user as follows:
+we can associate an unsafe--user @samp{marco-firefox} to a safe--user @samp{marco} by running the
+following commands using the access permissions of @samp{marco}:
+
+@example
+@value{MANAGER_SCRIPT} unsafe-users add marco-firefox
+@end example
+
+@noindent
+then we can launch executables under the unsafe--user by running the following command using the
+access permissions of @samp{marco}:
 
 @example
 sudo -u marco-firefox /path/to/firefox
 @end example
+
+@c page
+@node overview safe
+@section What is a safe--user
+
+
+In the context of this package: a @dfn{safe--user} is an account on a Slackware system that is
+directly used by a human computer user to perform its desired tasks; the account owns private data;
+the account can run processes to operate on such data.
+
+In the user management model implemented by @value{PACKAGE}: only a partition of a safe--users's
+private data can be shared with processes that access the Internet in any way or shared with
+processes run by other safe--users.
+
+@c page
+@node overview unsafe
+@section What is an unsafe user
+
+
+In the context of this package: an @dfn{unsafe--user} is an account on a Slackware system that is
+allowed to access a partition of private data owned by an associated safe--user.
+
+The unsafe--user is subordinate to its safe--user:
+
+@itemize
+@item
+a safe--user can run processes with the effective id of the unsafe--user;
+
+@item
+the unsafe--user cannot run processes with the effective id of its safe--user.
+@end itemize
+
+The standard for Unix systems is that the files @file{/etc/passwd} and @file{/etc/group} have octal
+mode @code{0644}: it is impossible to hide the existence of an unsafe--user; it is impossible to
+configure a system in such a way that only the safe--user knows about the existence of its
+unsafe--users.
 
 @c page
 @node setup
@@ -226,8 +283,8 @@ which is installed on the system by this package: do not blindly accept this con
 Take a good look at it and make the necessary changes for your host.
 
 Remember that such sudoers file must be installed on the system with octal access permissions
-@samp{0400}; the installation directory @file{/etc/sudoers.d} must have octal access permissions
-@samp{0700}.  Such permissions @strong{cannot} be enforced by the installation infrastructure of
+@samp{0400}; the installation directory @file{/etc/sudoers.d} usually has octal access permissions
+@samp{0755}.  Such permissions @strong{cannot} be enforced by the installation infrastructure of
 this package.
 
 To enable loading of sudoers configuration modules: we have to include the following line in the
