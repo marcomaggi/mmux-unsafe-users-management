@@ -3,7 +3,7 @@
 ACLOCAL_AMFLAGS		= -I meta/autotools
 EXTRA_DIST		= INSTALL
 dist_doc_DATA		= README COPYING
-MBFLPP_FLAGS		= --add-bash
+AM_MBFLPP_FLAGS		= --add-bash $(MBFLPP_FLAGS)
 
 BUILT_SOURCES		=
 CLEANFILES		=
@@ -35,7 +35,7 @@ src/etc/bash_completion.d/$(am__dirstamp):
 
 src/etc/sudoers.d/$(am__dirstamp):
 	@$(MKDIR_P) src/etc/sudoers.d/
-	@: > src/etc/sudoers.d//$(am__dirstamp)
+	@: > src/etc/sudoers.d/$(am__dirstamp)
 
 
 #### documentation
@@ -77,7 +77,7 @@ CLEANFILES	+= $(sbin_SCRIPTS)
 BUILT_SOURCES	+= src/sbin/mmux-unsafe-users-manager.m4
 
 src/sbin/mmux-unsafe-users-manager : src/sbin/mmux-unsafe-users-manager.m4
-	$(MBFLPP) $(MBFLPP_FLAGS) <$< >$@
+	$(MBFLPP) $(AM_MBFLPP_FLAGS) <$< >$@
 
 
 #### sudoers files
