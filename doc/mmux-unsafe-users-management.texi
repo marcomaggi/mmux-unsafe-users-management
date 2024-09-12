@@ -33,12 +33,12 @@
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2014, 2018, 2020, 2023
+@set COPYRIGHT_YEARS            2014, 2018, 2020, 2023, 2024
 
 @c ------------------------------------------------------------
 
 @set GITHUB_URL                 @url{http://github.com/marcomaggi/mmux-unsafe-users-management}
-@set DOCUMENTATION_URL          @url{http://marcomaggi.github.com/docs/mmux-unsafe-users-management.html}
+@set DOCUMENTATION_URL          @url{http://marcomaggi.github.io/docs/mmux-unsafe-users-management.html}
 
 @c ------------------------------------------------------------
 
@@ -819,7 +819,7 @@ the latest version of this package can be downloaded from:
 
 Marco's Bash Functions Library (@mbfl{}) can be found here:
 
-@center @url{http://marcomaggi.github.com/mbfl.html}
+@center @url{http://marcomaggi.github.io/mbfl.html}
 
 @c page
 @node concept index
