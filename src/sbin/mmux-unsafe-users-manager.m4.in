@@ -8,7 +8,7 @@
 #	This is the  do-it-all script for managing the  unsafe users as defined by  the package MMUX
 #	Unsafe Users Management.
 #
-# Copyright (C) 2014, 2018, 2020, 2023 Marco Maggi <mrc.mgg@gmail.com>
+# Copyright (C) 2014, 2018, 2020, 2023, 2025 Marco Maggi <mrc.mgg@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU
 # General Public  License as  published by  the Free Software  Foundation, either  version 3  of the
@@ -28,7 +28,7 @@
 declare -r script_REQUIRED_MBFL_VERSION=v3.0.0-devel.8
 declare -r script_PROGNAME=mmux-unsafe-users-manager
 declare -r script_VERSION=0.5.0
-declare -r script_COPYRIGHT_YEARS='2014, 2018, 2020, 2023'
+declare -r script_COPYRIGHT_YEARS='2014, 2018, 2020, 2023, 2025'
 declare -r script_AUTHOR='Marco Maggi'
 declare -r script_LICENSE=GPL
 declare script_USAGE="usage: ${script_PROGNAME} [action] [options] [--] [arguments]"
@@ -113,6 +113,8 @@ declare -r DEFAULT_UNSAFE_USERHOME_FILES_MODE='u-s,g-s,o-rwxs'
 #### library loading
 
 mbfl_embed_library
+
+MBFL_DEFINE_SPECIAL_MACROS
 
 
 #### program declarations
@@ -232,7 +234,7 @@ function script_action_SETUP () {
     fi
 
     mbfl_program_declare_sudo_user root
-    if program_this_script sudo-setup "$script_option_UNSAFE_USERS_HOME_BASE_DIRECTORY"
+    if program_this_script sudo-unsafe-setup "$script_option_UNSAFE_USERS_HOME_BASE_DIRECTORY"
     then exit_success
     else
     	mbfl_message_error 'performing system setup'
@@ -340,6 +342,7 @@ function script_action_UNSAFE_ADD () {
     {
 	mbfl_declare_varref(SAFE_USERNAME)
 	determine_safe_username_var mbfl_datavar(SAFE_USERNAME)
+	mbfl_message_verbose_printf 'the selected safe user name is: "%s"\n' "$SAFE_USERNAME"
     }
 
     # Determine the unsafe username.
@@ -347,18 +350,20 @@ function script_action_UNSAFE_ADD () {
 	mbfl_declare_varref(UNSAFE_USERNAME)
 	mbfl_command_line_argument(UNSAFE_USERNAME, 0)
 	determine_unsafe_username_var mbfl_datavar(UNSAFE_USERNAME)
+	mbfl_message_verbose_printf 'the selected unsafe user name is: "%s"\n' "$UNSAFE_USERNAME"
     }
 
     # Determine the base directory for unsafe users' home directories.
     {
 	mbfl_declare_varref(UNSAFE_USERS_HOME_BASE_DIRECTORY)
 	determine_base_directory_for_unsafe_users_home_directories_var mbfl_datavar(UNSAFE_USERS_HOME_BASE_DIRECTORY)
+	mbfl_message_verbose_printf 'the selected home directory is: "%s"\n' QQ(UNSAFE_USERS_HOME_BASE_DIRECTORY)
     }
 
     # Invoke this script itself to perform the operations.
     {
 	mbfl_program_declare_sudo_user root
-	if program_this_script sudo-add							\
+	if program_this_script sudo-unsafe-add						\
 			       "$SAFE_USERNAME"						\
 			       "$UNSAFE_USERNAME"					\
 			       "$script_option_UNSAFE_USERS_HOME_BASE_DIRECTORY"
@@ -386,7 +391,7 @@ function script_action_SUDO_UNSAFE_ADD () {
     mbfl_command_line_argument(SAFE_USERNAME,                    0)
     mbfl_command_line_argument(UNSAFE_USERNAME,                  1)
     mbfl_command_line_argument(UNSAFE_USERS_HOME_BASE_DIRECTORY, 2)
-    local -r UNSAFE_HOME="${UNSAFE_USERS_HOME_BASE_DIRECTORY}/${UNSAFE_USERNAME}"
+    declare -r UNSAFE_HOME="${UNSAFE_USERS_HOME_BASE_DIRECTORY}/${UNSAFE_USERNAME}"
 
     validate_safe_username "$SAFE_USERNAME"
     validate_unsafe_username "$UNSAFE_USERNAME"
@@ -459,7 +464,7 @@ function script_action_UNSAFE_DEL () {
     # Invoke this script itself to perform the operations.
     {
 	mbfl_program_declare_sudo_user root
-	if program_this_script sudo-del "$SAFE_USERNAME" "$UNSAFE_USERNAME"
+	if program_this_script sudo-unsafe-del "$SAFE_USERNAME" "$UNSAFE_USERNAME"
 	then exit_success
 	else
     	    mbfl_message_error 'deleting user'
@@ -646,10 +651,10 @@ function script_action_UNSAFE_NORMALISE () {
 	fi
     }
 
-    # Execute the script itself, invoking the action "sudo-normalise".
+    # Execute the script itself, invoking the action "sudo-unsafe-normalise".
     {
 	mbfl_program_declare_sudo_user root
-	if program_this_script sudo-normalise "$SAFE_USERNAME" "$UNSAFE_USERNAME"
+	if program_this_script sudo-unsafe-normalise "$SAFE_USERNAME" "$UNSAFE_USERNAME"
 	then exit_success
 	else
     	    mbfl_message_error 'normalising unsafe users directories'
@@ -1108,9 +1113,7 @@ function determine_safe_username_var () {
     else determine_effective_user_name_var mbfl_datavar(SAFE_USERNAME)
     fi
     if mbfl_string_is_username "$SAFE_USERNAME"
-    then
-	mbfl_message_verbose_printf 'the selected safe user name is: "%s"\n' "$SAFE_USERNAME"
-	return_success
+    then return_success
     else
 	mbfl_message_error_printf 'invalid safe username: "%s"' "$SAFE_USERNAME"
 	exit_because_invalid_safe_username
